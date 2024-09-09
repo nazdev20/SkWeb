@@ -12,7 +12,13 @@ const Navbar = () => {
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      const offset = 60; // Adjust this value based on your navbar height
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
     }
     if (isSidebarOpen) {
       handleSidebarToggle();
@@ -21,6 +27,7 @@ const Navbar = () => {
 
   return (
     <>
+      {/* Sidebar for mobile view */}
       <div
         className={`fixed inset-0 bg-black bg-opacity-50 z-40 transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-300 ease-in-out md:hidden`}
       >
@@ -50,6 +57,7 @@ const Navbar = () => {
         </div>
       </div>
 
+      {/* Navbar for desktop view */}
       <nav className="bg-white p-4 fixed w-full z-30 flex flex-col md:flex-row items-center justify-between">
         <div className="flex items-center w-full md:w-auto">
           <h1
@@ -58,7 +66,7 @@ const Navbar = () => {
             hover:text-transparent hover:bg-clip-text transition duration-300 ease-in-out"
             onClick={() => scrollToSection('home')}
           >
-           Logo
+            Logo
           </h1>
           <button
             className="md:hidden text-black font-bold text-2xl ml-auto"
