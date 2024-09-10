@@ -108,11 +108,11 @@ const AdminServices: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 max-w-screen mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-center">Admin Services Management</h1>
 
       {/* Service Form */}
-      <div className="bg-white p-6 rounded-lg shadow-md mb-8 max-w-xl mx-auto">
+      <div className="bg-white p-6 rounded-lg shadow-md mb-8 max-w-[100%] mx-auto">
         <h2 className="text-2xl font-bold mb-4">{editMode ? 'Edit Service' : 'Add New Service'}</h2>
         <input
           type="text"
@@ -180,7 +180,7 @@ const AdminServices: React.FC = () => {
       </div>
 
       {/* Services List */}
-      <div className="bg-white p-6 rounded-lg shadow-md max-w-xl mx-auto">
+      <div className="bg-white p-6 rounded-lg shadow-md max-w-[100%] mx-auto">
         <h2 className="text-2xl font-bold mb-4">Existing Services</h2>
         {services.map((service) => (
           <div key={service.id} className="border-b border-gray-200 py-4">

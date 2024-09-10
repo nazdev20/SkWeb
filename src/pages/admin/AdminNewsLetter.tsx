@@ -124,7 +124,7 @@ const AdminNewsletter: React.FC = () => {
 
   const handleLoadMore = () => {
     if (!loading && hasMore) {
-      setLastVisible(prev => prev); // This triggers useEffect to fetch more data
+      setLastVisible(prev => prev); 
     }
   };
 

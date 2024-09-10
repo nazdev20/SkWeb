@@ -222,11 +222,11 @@ const AdminEvents: React.FC = () => {
   };
 
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
-      <h2 className="text-3xl font-bold mb-6">Manage Events</h2>
+    <div className="p-4 sm:p-6 lg:p-8 bg-gray-100 min-h-screen">
+      <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Manage Events</h2>
       
-      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
-        <h3 className="text-xl font-semibold mb-4">{newEvent.id ? 'Edit Event' : 'Add New Event'}</h3>
+      <div className="bg-white shadow-md rounded-lg p-4 sm:p-6 mb-4 sm:mb-8">
+        <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4">{newEvent.id ? 'Edit Event' : 'Add New Event'}</h3>
         <div className="space-y-4">
           {/* Inputs for event details */}
           <input
@@ -234,94 +234,141 @@ const AdminEvents: React.FC = () => {
             placeholder="Title"
             value={newEvent.title}
             onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <input
             type="date"
             placeholder="Date"
             value={newEvent.date}
             onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <input
             type="text"
             placeholder="Location"
             value={newEvent.location}
             onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <textarea
             placeholder="Description"
             value={newEvent.description}
             onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-
-          {/* Image input */}
+          <select
+            value={newEvent.category}
+            onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value })}
+            className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select Category</option>
+            <option value="Music">Music</option>
+            <option value="Sports">Sports</option>
+            <option value="Art">Art</option>
+            <option value="Party">Party</option>
+            <option value="Art">Gathering</option>
+          </select>
+          
+          {/* Image inputs */}
           {imageInputs.map((_, index) => (
-            <div key={index} className="flex items-center space-x-4">
+            <div key={index} className="flex items-center space-x-2">
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => handleFileChange(e, index)}
-                className="p-3 border border-gray-300 rounded-lg"
+                className="border border-gray-300 rounded-lg p-2"
               />
               <button
+                type="button"
                 onClick={() => removeImageInput(index)}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg"
+                className="text-red-500 hover:text-red-700"
               >
                 Remove
               </button>
             </div>
           ))}
           <button
+            type="button"
             onClick={addImageInput}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+            className="text-blue-500 hover:text-blue-700"
           >
-            Add More Images
+            Add Image
           </button>
-
-          <button
-            onClick={newEvent.id ? saveEvent : addEvent}
-            className="bg-green-500 text-white px-4 py-2 rounded-lg"
-          >
-            {newEvent.id ? 'Update Event' : 'Add Event'}
-          </button>
+          
+          <div className="flex justify-end space-x-2 mt-4">
+            {newEvent.id ? (
+              <>
+                <button
+                  onClick={saveEvent}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setNewEvent({ id: '', title: '', date: '', location: '', description: '', image: [], category: '' })}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={addEvent}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+              >
+                Add Event
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <h3 className="text-xl font-semibold mb-4">Event List</h3>
+      {/* Events List */}
+      <div className="bg-white shadow-md rounded-lg p-4 sm:p-6">
+        <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4">Events List</h3>
         {isLoading ? (
-          <p>Loading events...</p>
+          <p>Loading...</p>
         ) : (
           <ul className="space-y-4">
             {events.map((event) => (
-              <li key={event.id} className="flex items-center justify-between bg-gray-50 p-4 rounded-lg shadow-sm">
-                <div>
-                  <h4 className="text-lg font-semibold">{event.title}</h4>
-                  <p>{event.date}</p>
-                  <p>{event.location}</p>
-                </div>
-                <div className="space-x-4">
-                  <button
-                    onClick={() => handleEventClick(event)}
-                    className="bg-yellow-500 text-white px-4 py-2 rounded-lg"
-                  >
-                    Mark Attendance
-                  </button>
-                  <button
-                    onClick={() => editEvent(event.id)}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => deleteEvent(event.id)}
-                    className="bg-red-500 text-white px-4 py-2 rounded-lg"
-                  >
-                    Delete
-                  </button>
+              <li key={event.id} className="border-b border-gray-200 pb-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h4 className="text-lg font-semibold">{event.title}</h4>
+                    <p className="text-gray-600">{event.date}</p>
+                    <p className="text-gray-600">{event.location}</p>
+                    <p className="text-gray-600">{event.description}</p>
+                    <div className="flex flex-wrap mt-2 space-x-2">
+                      {event.image.map((img, i) => (
+                        <img
+                          key={i}
+                          src={img}
+                          alt={`Event ${i}`}
+                          className="w-24 h-24 object-cover rounded-lg"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => editEvent(event.id)}
+                      className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => deleteEvent(event.id)}
+                      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      onClick={() => handleEventClick(event)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                    >
+                      Mark Attendance
+                    </button>
+                  </div>
                 </div>
               </li>
             ))}
@@ -330,21 +377,22 @@ const AdminEvents: React.FC = () => {
         {lastVisible && (
           <button
             onClick={fetchMoreEvents}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4"
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
             Load More
           </button>
         )}
       </div>
 
+      {/* Attendance Form */}
       {showAttendanceForm && selectedEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-            <h3 className="text-xl font-semibold mb-4">Attendance for {selectedEvent.title}</h3>
-            {/* Attendance form content goes here */}
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
+          <div className="bg-white p-4 rounded-lg shadow-lg w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">Mark Attendance for {selectedEvent.title}</h3>
+            {/* Add your attendance form fields here */}
             <button
               onClick={() => setShowAttendanceForm(false)}
-              className="bg-gray-500 text-white px-4 py-2 rounded-lg mt-4"
+              className="mt-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
             >
               Close
             </button>
