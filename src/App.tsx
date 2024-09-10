@@ -11,6 +11,7 @@ import FloatingChatButton from './components/buttons/floatingbutton';
 import 'leaflet/dist/leaflet.css';
 
 import Main from './pages/admin/main';
+import HomeSection from './components/ui/pages/HomeSection';
 
 
 
@@ -31,6 +32,7 @@ function App() {
         <div id="home">
           <Home />
         </div>
+         <HomeSection/>
         <div id="service">
           <Service />
         </div>
@@ -42,8 +44,7 @@ function App() {
         </div>
         <InvolvementPage/>
         <FloatingChatButton /> 
-      
-    
+      <Main/>    
        
         
       </Router>

@@ -8,6 +8,7 @@ export const navItems = [
     { name: 'Events', id: 'events' }
 ];
 export interface Application {
+    data: unknown;
     id: string;
     serviceId?: string;
     name?: string;
@@ -40,6 +41,7 @@ export interface Service {
     description: string;
     imageUrl: string;
     formFields: FormField[];
+
 }
 export interface FormField {
     label: string;

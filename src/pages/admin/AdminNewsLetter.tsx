@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, storage } from '../../config/firebaseconfig';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, DocumentData, QuerySnapshot } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, DocumentData, QuerySnapshot, query, orderBy, limit, startAfter } from 'firebase/firestore';
 import { uploadBytes, ref, getDownloadURL } from 'firebase/storage';
 
 interface Newsletter {
@@ -19,36 +19,61 @@ const AdminNewsletter: React.FC = () => {
     imageUrl: '',
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [lastVisible, setLastVisible] = useState<DocumentData | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [hasMore, setHasMore] = useState<boolean>(true);
 
   const newslettersCollectionRef = collection(db, 'newsletters');
 
   useEffect(() => {
     const fetchNewsletters = async () => {
-      const data: QuerySnapshot<DocumentData> = await getDocs(newslettersCollectionRef);
-      setNewsletters(
-        data.docs.map((doc) => ({ ...doc.data(), id: doc.id } as Newsletter))
-      );
+      if (loading || !hasMore) return; // Prevent fetching if already loading or no more data
+
+      setLoading(true);
+      let q = query(newslettersCollectionRef, orderBy('title'), limit(10));
+      if (lastVisible) {
+        q = query(q, startAfter(lastVisible));
+      }
+
+      try {
+        const data: QuerySnapshot<DocumentData> = await getDocs(q);
+        console.log('Fetched data:', data.docs.map(doc => doc.data())); // Log fetched data
+        if (data.empty) {
+          setHasMore(false); // No more data to fetch
+        } else {
+          const fetchedNewsletters = data.docs.map(doc => ({ ...doc.data(), id: doc.id } as Newsletter));
+          console.log('Fetched newsletters:', fetchedNewsletters); // Log fetched newsletters
+          setNewsletters(prev => {
+            // Avoid duplicating records
+            const existingIds = new Set(prev.map(newsletter => newsletter.id));
+            const uniqueNewsletters = fetchedNewsletters.filter(newsletter => !existingIds.has(newsletter.id));
+            return [...prev, ...uniqueNewsletters];
+          });
+          setLastVisible(data.docs[data.docs.length - 1]); // Update lastVisible to the last document
+        }
+      } catch (error) {
+        console.error('Error fetching newsletters:', error);
+      }
+      setLoading(false);
     };
 
     fetchNewsletters();
-  }, [newslettersCollectionRef]);
+  }, [lastVisible, loading, hasMore]);
 
   const handleAddNewsletter = async () => {
     let imageUrl = formData.imageUrl;
 
     if (imageFile) {
-      const imageRef = ref(storage, `images/${imageFile.name}`);
+      const imageRef = ref(storage, `images/${Date.now()}_${imageFile.name}`); // Unique file name
       await uploadBytes(imageRef, imageFile);
       imageUrl = await getDownloadURL(imageRef);
     }
 
     await addDoc(newslettersCollectionRef, { ...formData, imageUrl });
-    setFormData({
-      title: '',
-      description: '',
-      imageUrl: '',
-    });
+    setFormData({ title: '', description: '', imageUrl: '' });
     setImageFile(null);
+    setLastVisible(null); // Reset pagination when adding a new newsletter
+    setNewsletters([]); // Clear existing list to avoid stale data
   };
 
   const handleUpdateNewsletter = async (id: string) => {
@@ -56,7 +81,7 @@ const AdminNewsletter: React.FC = () => {
     let imageUrl = formData.imageUrl;
 
     if (imageFile) {
-      const imageRef = ref(storage, `images/${imageFile.name}`);
+      const imageRef = ref(storage, `images/${Date.now()}_${imageFile.name}`); // Unique file name
       await uploadBytes(imageRef, imageFile);
       imageUrl = await getDownloadURL(imageRef);
     }
@@ -64,11 +89,15 @@ const AdminNewsletter: React.FC = () => {
     await updateDoc(newsletterDoc, { ...formData, imageUrl });
     setEditing(null);
     setImageFile(null);
+    setLastVisible(null); // Reset pagination when updating a newsletter
+    setNewsletters([]); // Clear existing list to avoid stale data
   };
 
   const handleDeleteNewsletter = async (id: string) => {
     const newsletterDoc = doc(db, 'newsletters', id);
     await deleteDoc(newsletterDoc);
+    setLastVisible(null); // Reset pagination when deleting a newsletter
+    setNewsletters([]); // Clear existing list to avoid stale data
   };
 
   const handleEdit = (newsletter: Newsletter) => {
@@ -93,6 +122,12 @@ const AdminNewsletter: React.FC = () => {
     }
   };
 
+  const handleLoadMore = () => {
+    if (!loading && hasMore) {
+      setLastVisible(prev => prev); // This triggers useEffect to fetch more data
+    }
+  };
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Manage Newsletters</h1>
@@ -100,7 +135,6 @@ const AdminNewsletter: React.FC = () => {
         <h2 className="text-xl font-semibold mb-4">{editing ? 'Edit Newsletter' : 'Add New Newsletter'}</h2>
         <form onSubmit={(e) => {
           e.preventDefault();
-          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           editing ? handleUpdateNewsletter(editing) : handleAddNewsletter();
         }}>
           <input type="text" name="title" placeholder="Title" value={formData.title} onChange={handleChange} className="block w-full mb-2 p-2 border border-gray-300 rounded" />
@@ -122,6 +156,10 @@ const AdminNewsletter: React.FC = () => {
           </div>
         ))}
       </div>
+      {loading && <p>Loading more newsletters...</p>}
+      {!loading && hasMore && (
+        <button onClick={handleLoadMore} className="mt-4 bg-blue-500 text-white p-2 rounded">Load More</button>
+      )}
     </div>
   );
 };

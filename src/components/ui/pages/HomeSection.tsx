@@ -1,4 +1,4 @@
-import reactimg from "../../../assets/react.svg";
+import Sk from "../../../assets/Hero section/SK KABATAAANNNNN.jpg";
 import { SignUp } from "../buttons";
 
 const HomeSection = () => {
@@ -22,7 +22,7 @@ const HomeSection = () => {
         {/* Image Section */}
         <div className="flex justify-center sm:ml-[-20px] w-full sm:w-1/2"> {/* Make the width responsive */}
           <img 
-            src={reactimg} 
+            src={Sk} 
             alt="Card" 
             className="w-[80%] h-auto sm:w-[300px] sm:h-[300px] md:w-[400px] md:h-[400px] lg:w-[550px] lg:h-[550px] rounded-md shadow-md object-contain"
           />

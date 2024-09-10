@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { db, storage } from '../../config/firebaseconfig';
-import { collection, addDoc, deleteDoc, doc, getDocs, DocumentData } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, DocumentData } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Service, FormField } from '../../data/data';
 
@@ -14,21 +14,20 @@ const AdminServices: React.FC = () => {
   });
   const [imageUpload, setImageUpload] = useState<File | null>(null);
   const [formFields, setFormFields] = useState<FormField[]>([{ label: '', type: 'text' }]);
+  const [editMode, setEditMode] = useState<boolean>(false);
+  const [editServiceId, setEditServiceId] = useState<string | null>(null);
 
   const servicesCollectionRef = collection(db, 'services');
 
-  const fetchServices = useCallback(async () => {
-    try {
-      const data = await getDocs(servicesCollectionRef);
-      setServices(data.docs.map((doc: DocumentData) => ({ ...doc.data(), id: doc.id } as Service)));
-    } catch (error) {
-      console.error('Error fetching services:', error);
-    }
-  }, [servicesCollectionRef]);
-
   useEffect(() => {
-    fetchServices();
-  }, [fetchServices]);
+    const unsubscribe = onSnapshot(servicesCollectionRef, (snapshot) => {
+      setServices(snapshot.docs.map((doc: DocumentData) => ({ ...doc.data(), id: doc.id } as Service)));
+    }, (error) => {
+      console.error('Error fetching services:', error);
+    });
+
+    return () => unsubscribe(); 
+  }, [servicesCollectionRef]);
 
   const uploadImage = async (image: File | null): Promise<string | undefined> => {
     if (!image) return;
@@ -42,10 +41,13 @@ const AdminServices: React.FC = () => {
     }
   };
 
-  const addService = async () => {
+  const addOrUpdateService = async () => {
     try {
-      const imageUrl = await uploadImage(imageUpload);
-      if (!imageUrl) return;
+      const imageUrl = imageUpload ? await uploadImage(imageUpload) : newService.imageUrl;
+
+      if (imageUrl === undefined) {
+        throw new Error('Failed to upload image.');
+      }
 
       const serviceData: Omit<Service, 'id'> = { 
         title: newService.title,
@@ -54,14 +56,20 @@ const AdminServices: React.FC = () => {
         formFields
       };
 
-      await addDoc(servicesCollectionRef, serviceData);
-      fetchServices();
+      if (editMode && editServiceId) {
+        const serviceDoc = doc(db, 'services', editServiceId);
+        await updateDoc(serviceDoc, serviceData);
+        setEditMode(false);
+        setEditServiceId(null);
+      } else {
+        await addDoc(servicesCollectionRef, serviceData);
+      }
 
       setNewService({ title: '', description: '', imageUrl: '', formFields: [] });
       setFormFields([{ label: '', type: 'text' }]);
       setImageUpload(null); 
     } catch (error) {
-      console.error('Error adding service:', error);
+      console.error('Error adding/updating service:', error);
     }
   };
 
@@ -69,7 +77,6 @@ const AdminServices: React.FC = () => {
     try {
       const serviceDoc = doc(db, 'services', id);
       await deleteDoc(serviceDoc);
-      fetchServices();
     } catch (error) {
       console.error('Error deleting service:', error);
     }
@@ -88,13 +95,25 @@ const AdminServices: React.FC = () => {
     setFormFields(formFields.filter((_, i) => i !== index));
   };
 
+  const editService = (service: Service) => {
+    setNewService({
+      title: service.title,
+      description: service.description,
+      imageUrl: service.imageUrl,
+      formFields: service.formFields
+    });
+    setFormFields(service.formFields);
+    setEditMode(true);
+    setEditServiceId(service.id);
+  };
+
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6">Admin Services Management</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">Admin Services Management</h1>
 
       {/* Service Form */}
-      <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-        <h2 className="text-2xl font-bold mb-4">Add New Service</h2>
+      <div className="bg-white p-6 rounded-lg shadow-md mb-8 max-w-xl mx-auto">
+        <h2 className="text-2xl font-bold mb-4">{editMode ? 'Edit Service' : 'Add New Service'}</h2>
         <input
           type="text"
           placeholder="Service Title"
@@ -129,14 +148,12 @@ const AdminServices: React.FC = () => {
               <select
                 value={field.type}
                 onChange={(e) => updateFormField(index, 'type', e.target.value)}
-                className="block w-1/4 p-2 border border-gray-300 rounded"
+                className="p-2 border border-gray-300 rounded"
               >
                 <option value="text">Text</option>
                 <option value="email">Email</option>
                 <option value="number">Number</option>
                 <option value="textarea">Textarea</option>
-                <option value="date">Date</option>
-                <option value="file">File</option> {/* Added file type */}
               </select>
               <button
                 onClick={() => removeFormField(index)}
@@ -148,42 +165,42 @@ const AdminServices: React.FC = () => {
           ))}
           <button
             onClick={addFormField}
-            className="mt-4 bg-blue-500 text-white p-2 rounded"
+            className="bg-blue-500 text-white p-2 rounded"
           >
-            Add Another Field
+            Add Field
           </button>
         </div>
 
         <button
-          onClick={addService}
-          className="mt-6 bg-green-500 text-white p-3 rounded w-full"
+          onClick={addOrUpdateService}
+          className="mt-4 bg-green-500 text-white p-2 rounded"
         >
-          Add Service
+          {editMode ? 'Update Service' : 'Add Service'}
         </button>
       </div>
 
       {/* Services List */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-4">Available Services</h2>
-        <ul className="space-y-4">
-          {services.map(service => (
-            <li key={service.id} className="flex justify-between items-center p-4 border-b border-gray-200">
-              <div className="flex items-center">
-                <img src={service.imageUrl} alt={service.title} className="w-16 h-16 rounded mr-4" />
-                <div>
-                  <h3 className="text-xl font-bold">{service.title}</h3>
-                  <p className="text-gray-600">{service.description}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => deleteService(service.id!)}
-                className="bg-red-500 text-white p-2 rounded"
-              >
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
+      <div className="bg-white p-6 rounded-lg shadow-md max-w-xl mx-auto">
+        <h2 className="text-2xl font-bold mb-4">Existing Services</h2>
+        {services.map((service) => (
+          <div key={service.id} className="border-b border-gray-200 py-4">
+            <h3 className="text-xl font-semibold">{service.title}</h3>
+            <p>{service.description}</p>
+            <img src={service.imageUrl} alt={service.title} className="w-32 h-32 object-cover my-2" />
+            <button
+              onClick={() => editService(service)}
+              className="mr-2 bg-yellow-500 text-white p-2 rounded"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => deleteService(service.id)}
+              className="bg-red-500 text-white p-2 rounded"
+            >
+              Delete
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

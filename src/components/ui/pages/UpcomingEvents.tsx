@@ -9,19 +9,16 @@ const UpcomingEvents: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const eventList = (await getDocs(collection(db, 'events'))).docs.map(doc => ({ id: doc.id, ...doc.data() } as Event));
+        setEvents(eventList);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      }
+    };
     fetchEvents();
   }, []);
-
-  const fetchEvents = async () => {
-    try {
-      const eventsCollection = collection(db, 'events');
-      const eventSnapshot = await getDocs(eventsCollection);
-      const eventList = eventSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Event));
-      setEvents(eventList);
-    } catch (error) {
-      console.error('Error fetching events:', error);
-    }
-  };
 
   const openModal = (event: Event) => {
     setSelectedEvent(event);
@@ -39,7 +36,7 @@ const UpcomingEvents: React.FC = () => {
       {events.length === 0 ? (
         <p className="text-base sm:text-lg text-gray-600">No upcoming events available at the moment.</p>
       ) : (
-        <div className="grid grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
           {events.map(event => (
             <div
               key={event.id}
@@ -47,13 +44,13 @@ const UpcomingEvents: React.FC = () => {
               onClick={() => openModal(event)}
             >
               <img
-                src={event.image.length > 0 ? event.image[0] : '/default-image.jpg'}
+                src={event.image[0] || '/default-image.jpg'}
                 alt={event.title}
-                className="w-full h-32 sm:h-48 object-cover rounded-lg mb-4"
+                className="w-full h-32 sm:h-40 object-cover rounded-lg mb-4"
               />
               <div className="flex flex-col flex-grow">
-                <h3 className="text-lg sm:text-xl font-semibold mb-2 truncate">{event.title}</h3>
-                <p className="text-gray-600 text-sm sm:text-base truncate">{event.date}</p>
+                <h3 className="text-base sm:text-lg font-semibold mb-2 truncate">{event.title}</h3>
+                <p className="text-gray-600 text-xs sm:text-sm truncate">{event.date}</p>
               </div>
             </div>
           ))}

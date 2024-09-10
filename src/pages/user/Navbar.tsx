@@ -12,7 +12,7 @@ const Navbar = () => {
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      const offset = 60; // Adjust this value based on your navbar height
+      const offset = 60; 
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
       window.scrollTo({
@@ -57,7 +57,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Navbar for desktop view */}
+   
       <nav className="bg-white p-4 fixed w-full z-30 flex flex-col md:flex-row items-center justify-between">
         <div className="flex items-center w-full md:w-auto">
           <h1

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, collection, addDoc, deleteDoc, updateDoc, doc, getDocs, getDoc } from '../../config/firebaseconfig';
+import { query, limit, startAfter, DocumentSnapshot } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Event } from '../../data/data';
 
@@ -18,8 +19,11 @@ const AdminEvents: React.FC = () => {
   const [imageInputs, setImageInputs] = useState<number[]>([0]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showAttendanceForm, setShowAttendanceForm] = useState(false);
+  const [lastVisible, setLastVisible] = useState<DocumentSnapshot | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const storage = getStorage();
+  const EVENTS_LIMIT = 5;
 
   useEffect(() => {
     fetchEvents();
@@ -27,20 +31,54 @@ const AdminEvents: React.FC = () => {
 
   const fetchEvents = async () => {
     try {
-      const eventsCollection = collection(db, 'events');
-      const eventSnapshot = await getDocs(eventsCollection);
+      setIsLoading(true);
+      const eventsQuery = query(collection(db, 'events'), limit(EVENTS_LIMIT));
+      const eventSnapshot = await getDocs(eventsQuery);
       const eventList = eventSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Event));
+      
       setEvents(eventList);
+      setLastVisible(eventSnapshot.docs[eventSnapshot.docs.length - 1]); // Store last visible document for pagination
     } catch (error) {
       console.error('Error fetching events:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchMoreEvents = async () => {
+    try {
+      setIsLoading(true);
+      if (!lastVisible) return;
+
+      const eventsQuery = query(
+        collection(db, 'events'),
+        startAfter(lastVisible),
+        limit(EVENTS_LIMIT)
+      );
+      const eventSnapshot = await getDocs(eventsQuery);
+      const moreEvents = eventSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Event));
+
+      setEvents(prevEvents => [...prevEvents, ...moreEvents]);
+      setLastVisible(eventSnapshot.docs[eventSnapshot.docs.length - 1]); // Update last visible document
+    } catch (error) {
+      console.error('Error fetching more events:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
+      const selectedFile = files[0];
+
+      if (selectedFile.size > 1048576) {
+        alert('File size exceeds 1 MB. Please upload a smaller file.');
+        return;
+      }
+
       const updatedFiles = [...imageFiles];
-      updatedFiles[index] = files[0];
+      updatedFiles[index] = selectedFile;
       setImageFiles(updatedFiles);
     }
   };
@@ -58,7 +96,7 @@ const AdminEvents: React.FC = () => {
     const filePromises = imageFiles.map((file) => {
       return new Promise<string>((resolve, reject) => {
         const storageRef = ref(storage, `events/${file.name}`);
-        
+
         uploadBytes(storageRef, file)
           .then(async (snapshot) => {
             const downloadURL = await getDownloadURL(snapshot.ref);
@@ -82,14 +120,14 @@ const AdminEvents: React.FC = () => {
 
   const addEvent = async () => {
     try {
-      const imageUrls = await uploadImages(); // Upload and get image URLs
+      const imageUrls = await uploadImages();
       const eventsCollection = collection(db, 'events');
       await addDoc(eventsCollection, {
         title: newEvent.title,
         date: newEvent.date,
         location: newEvent.location,
         description: newEvent.description,
-        image: imageUrls, // Store URLs in Firestore
+        image: imageUrls,
         category: newEvent.category,
       });
       setNewEvent({
@@ -190,6 +228,7 @@ const AdminEvents: React.FC = () => {
       <div className="bg-white shadow-md rounded-lg p-6 mb-8">
         <h3 className="text-xl font-semibold mb-4">{newEvent.id ? 'Edit Event' : 'Add New Event'}</h3>
         <div className="space-y-4">
+          {/* Inputs for event details */}
           <input
             type="text"
             placeholder="Title"
@@ -217,16 +256,19 @@ const AdminEvents: React.FC = () => {
             onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+
+          {/* Image input */}
           {imageInputs.map((_, index) => (
-            <div key={index} className="flex items-center space-x-2">
+            <div key={index} className="flex items-center space-x-4">
               <input
                 type="file"
+                accept="image/*"
                 onChange={(e) => handleFileChange(e, index)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="p-3 border border-gray-300 rounded-lg"
               />
               <button
                 onClick={() => removeImageInput(index)}
-                className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition duration-300"
+                className="bg-red-500 text-white px-4 py-2 rounded-lg"
               >
                 Remove
               </button>
@@ -234,78 +276,75 @@ const AdminEvents: React.FC = () => {
           ))}
           <button
             onClick={addImageInput}
-            className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition duration-300"
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg"
           >
-            Add Image
+            Add More Images
           </button>
-          <input
-            type="text"
-            placeholder="Category"
-            value={newEvent.category}
-            onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value })}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+
+          <button
+            onClick={newEvent.id ? saveEvent : addEvent}
+            className="bg-green-500 text-white px-4 py-2 rounded-lg"
+          >
+            {newEvent.id ? 'Update Event' : 'Add Event'}
+          </button>
         </div>
-        <button
-          onClick={newEvent.id ? saveEvent : addEvent}
-          className="mt-4 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300"
-        >
-          {newEvent.id ? 'Update Event' : 'Add Event'}
-        </button>
       </div>
 
       <div className="bg-white shadow-md rounded-lg p-6">
         <h3 className="text-xl font-semibold mb-4">Event List</h3>
-        <ul>
-          {events.map((event) => (
-            <li key={event.id} className="flex items-center justify-between mb-4">
-              <div>
-                <h4 className="text-lg font-semibold">{event.title}</h4>
-                <p className="text-gray-600">{event.date}</p>
-                <p className="text-gray-600">{event.location}</p>
-                <p className="text-gray-600">{event.description}</p>
-                <p className="text-gray-600">Category: {event.category}</p>
-                <div className="mt-2">
-                  {event.image.map((imgUrl, index) => (
-                    <img key={index} src={imgUrl} alt={`Event ${index}`} className="w-32 h-32 object-cover mb-2" />
-                  ))}
+        {isLoading ? (
+          <p>Loading events...</p>
+        ) : (
+          <ul className="space-y-4">
+            {events.map((event) => (
+              <li key={event.id} className="flex items-center justify-between bg-gray-50 p-4 rounded-lg shadow-sm">
+                <div>
+                  <h4 className="text-lg font-semibold">{event.title}</h4>
+                  <p>{event.date}</p>
+                  <p>{event.location}</p>
                 </div>
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => editEvent(event.id)}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition duration-300"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => deleteEvent(event.id)}
-                  className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300"
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() => handleEventClick(event)}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300"
-                >
-                  Mark Attendance
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+                <div className="space-x-4">
+                  <button
+                    onClick={() => handleEventClick(event)}
+                    className="bg-yellow-500 text-white px-4 py-2 rounded-lg"
+                  >
+                    Mark Attendance
+                  </button>
+                  <button
+                    onClick={() => editEvent(event.id)}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => deleteEvent(event.id)}
+                    className="bg-red-500 text-white px-4 py-2 rounded-lg"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        {lastVisible && (
+          <button
+            onClick={fetchMoreEvents}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg mt-4"
+          >
+            Load More
+          </button>
+        )}
       </div>
 
       {showAttendanceForm && selectedEvent && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-md w-96">
-            <h4 className="text-xl font-semibold mb-4">Mark Attendance for {selectedEvent.title}</h4>
-            <form>
-           
-            </form>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg shadow-lg w-96">
+            <h3 className="text-xl font-semibold mb-4">Attendance for {selectedEvent.title}</h3>
+            {/* Attendance form content goes here */}
             <button
               onClick={() => setShowAttendanceForm(false)}
-              className="mt-4 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-300"
+              className="bg-gray-500 text-white px-4 py-2 rounded-lg mt-4"
             >
               Close
             </button>

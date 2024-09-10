@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, onSnapshot, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../../config/firebaseconfig';
 
 interface ApplicationData {
@@ -15,12 +15,12 @@ const ServiceResult = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [services, setServices] = useState<Record<string, string>>({}); // Maps serviceId to serviceTitle
   const [, setUserInput] = useState<{ [id: string]: ApplicationData }>({});
-  const [servicesLoaded, setServicesLoaded] = useState(false); // Track if services are fully loaded
+  const [servicesLoaded, setServicesLoaded] = useState(false);
 
   useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'services'));
+    const fetchServices = () => {
+      const servicesRef = collection(db, 'services');
+      const unsubscribe = onSnapshot(servicesRef, (querySnapshot) => {
         const servicesData = querySnapshot.docs.reduce<Record<string, string>>((acc, doc) => {
           const data = doc.data();
           acc[doc.id] = data.title;
@@ -28,49 +28,44 @@ const ServiceResult = () => {
         }, {});
         setServices(servicesData);
         setServicesLoaded(true); // Mark services as fully loaded
-      } catch (error) {
+      }, (error) => {
         console.error('Error fetching services:', error);
-      }
+      });
+
+      return unsubscribe; // Cleanup function for unsubscribing from snapshot listener
     };
 
-    fetchServices();
+    const unsubscribeServices = fetchServices();
+    return () => unsubscribeServices(); // Unsubscribe on component unmount
   }, []);
 
   useEffect(() => {
-    const fetchAndFilterApplications = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'applications'));
-        const filteredAppsData: Application[] = [];
+    if (!servicesLoaded) return;
 
-        await Promise.all(
-          querySnapshot.docs.map(async (doc) => {
-            const appData = doc.data() as ApplicationData;
-            const serviceId = appData.serviceId as string;
+    const applicationsRef = collection(db, 'applications');
+    const unsubscribeApplications = onSnapshot(applicationsRef, (querySnapshot) => {
+      const filteredAppsData: Application[] = [];
+      querySnapshot.forEach(async (doc) => {
+        const appData = doc.data() as ApplicationData;
+        const serviceId = appData.serviceId as string;
+        const serviceTitle = services[serviceId] || 'Unknown Service';
 
-            if (servicesLoaded) { // Only proceed if services are loaded
-              const serviceTitle = services[serviceId] || 'Unknown Service';
+        if (serviceTitle === 'Unknown Service') {
+          await deleteDoc(doc.ref); // Delete the record from Firestore only if the service is unknown
+        } else {
+          filteredAppsData.push({
+            id: doc.id,
+            data: appData,
+          });
+        }
+      });
 
-              if (serviceTitle === 'Unknown Service') {
-                await deleteDoc(doc.ref); // Delete the record from Firestore only if the service is unknown
-              } else {
-                filteredAppsData.push({
-                  id: doc.id,
-                  data: appData,
-                });
-              }
-            }
-          })
-        );
+      setApplications(filteredAppsData);
+    }, (error) => {
+      console.error('Error fetching applications:', error);
+    });
 
-        setApplications(filteredAppsData);
-      } catch (error) {
-        console.error('Error fetching and filtering applications:', error);
-      }
-    };
-
-    if (servicesLoaded) {
-      fetchAndFilterApplications();
-    }
+    return () => unsubscribeApplications(); // Unsubscribe on component unmount
   }, [servicesLoaded, services]);
 
   const handleInputChange = (serviceId: string, key: string, value: string | number | boolean) => {

@@ -46,22 +46,20 @@ const ServiceItemsModal: React.FC<ServiceItemsModalProps> = ({ service, onClose,
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white p-4 sm:p-14 rounded-lg w-11/12 sm:w-[70%] md:w-2/3 lg:w-1/2 max-w-md relative">
+      <div className="bg-white p-4 sm:p-14 rounded-lg w-[80%] sm:w-[60%] md:w-2/3 lg:w-1/2 max-w-md relative">
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-600 text-2xl sm:text-3xl font-bold focus:outline-none"
         >
           &times;
         </button>
-        <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">{service.title}</h2>
-        <p className="text-sm sm:text-base mb-2 sm:mb-3">{service.description}</p>
         
-        {/* Carousel for images with navigation buttons */}
-        <div className="relative mb-4">
+     
+        <div className="relative mb-4 mt-12">
           <img
             src={imageUrls[currentImageIndex]}
             alt={`Service Image ${currentImageIndex + 1}`}
-            className="w-full rounded-lg"
+            className="w-[400px] h-[400px] max-w-full max-h-80 rounded-lg md:w-[400px] md:h-[250px] mx-auto" // Adjust width and height for mobile and larger screens
           />
           {imageUrls.length > 1 && (
             <div className="absolute inset-0 flex justify-between items-center">
@@ -81,6 +79,9 @@ const ServiceItemsModal: React.FC<ServiceItemsModalProps> = ({ service, onClose,
           )}
         </div>
 
+        <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">{service.title}</h2>
+        <p className="text-sm sm:text-base mb-2 sm:mb-3">{service.description}</p>
+        
         <button
           onClick={openServiceForm}
           className="bg-blue-500 text-white p-2 sm:p-3 rounded w-full mt-4"
