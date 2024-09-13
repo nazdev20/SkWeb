@@ -40,25 +40,27 @@ const MyMapComponent: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+    <div style={{ 
+      position: 'relative', // Ensures zIndex works
+      display: 'flex', 
+      justifyContent: 'center', 
+      marginBottom: '20px', 
+      zIndex: 10 // Bring map to the front
+    }}>
       <MapContainer
-        
         style={{ 
           height: '400px', 
           width: '80%', 
           borderRadius: '20px', 
           border: '2px solid #ccc', 
           overflow: 'hidden',
-          zIndex: 1, // Ensure the map stays behind other content
+          zIndex: 10, // Ensure map container is on top
         }}
       >
-        {/* Set the view on load with the SetViewOnLoad component */}
         <SetViewOnLoad position={currentPosition} />
-
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-
         <ZoomToMarker position={currentPosition} />
       </MapContainer>
     </div>

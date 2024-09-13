@@ -17,6 +17,14 @@ const NewsletterItems: React.FC<NewsletterItemsProps> = ({ newsletter }) => {
     setIsModalOpen(false);
   };
 
+  // Function to truncate description
+  const truncateDescription = (description: string, maxLength: number) => {
+    if (description.length > maxLength) {
+      return `${description.substring(0, maxLength)}...`;
+    }
+    return description;
+  };
+
   return (
     <>
       <div
@@ -30,7 +38,7 @@ const NewsletterItems: React.FC<NewsletterItemsProps> = ({ newsletter }) => {
         />
         <div className="p-4">
           <h2 className="text-xl font-bold mb-2">{newsletter.title}</h2>
-          <p className="text-gray-700 mb-4">{newsletter.description}</p>
+          <p className="text-gray-700 mb-4">{truncateDescription(newsletter.description, 100)}</p>
           {newsletter.link && (
             <a href={newsletter.link} className="text-blue-500 hover:underline cursor-pointer">
               Read More &rarr;

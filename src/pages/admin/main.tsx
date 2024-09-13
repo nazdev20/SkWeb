@@ -1,6 +1,6 @@
 
 
-import MyMapComponent from '../user/Map'
+
 import AdminEvents from './AdminEvents'
 import AdminNewsletter from './AdminNewsLetter'
 import AdminServices from './Service-Admin'
@@ -16,7 +16,7 @@ const Main = () => {
       <AdminServices/>
       <ServiceResult/>
       <AdminAttendancePage/>
-      <MyMapComponent/>
+  
     </div>
   )
 }

@@ -1,6 +1,8 @@
-
 import React from 'react';
 import Card from '../../components/ui/pages/Involvementcard';
+import YouthLeader from "../../assets/Hero section/CAll for mebeerrs.jpg";
+import LeadWithPassion from "../../assets/Hero section/PROFILINGGGGGG.jpg";
+import NetworkWithYOuth from "../../assets/Hero section/KK ASSEMBLY.jpg";
 
 const InvolvementPage: React.FC = () => {
   return (
@@ -19,6 +21,7 @@ const InvolvementPage: React.FC = () => {
             { label: 'Learn More', href: '#learn-more' },
             { label: 'Sign Up', href: '#sign-up' },
           ]}
+          image={YouthLeader} // Image passed here
         />
 
         <Card
@@ -27,6 +30,7 @@ const InvolvementPage: React.FC = () => {
           actions={[
             { label: 'Join Us', href: '#join-us' },
           ]}
+          image={LeadWithPassion} // Image passed here
         />
 
         <Card
@@ -36,6 +40,7 @@ const InvolvementPage: React.FC = () => {
             { label: 'Learn More', href: '#learn-more' },
             { label: 'Sign Up', href: '#sign-up' },
           ]}
+          image={NetworkWithYOuth} // Image passed here
         />
 
         <div className="flex flex-col space-y-4">
@@ -45,7 +50,7 @@ const InvolvementPage: React.FC = () => {
             actions={[
               { label: 'Join Now', href: '#join-now' },
             ]}
-            imagePlaceholder={false} 
+            imagePlaceholder={false} // No image, no placeholder
           />
 
           <Card
@@ -54,8 +59,7 @@ const InvolvementPage: React.FC = () => {
             actions={[
               { label: 'Get Involved', href: '#get-involved' },
             ]}
-            imagePlaceholder={false} 
-            
+            imagePlaceholder={false} // No image, no placeholder
           />
         </div>
       </section>

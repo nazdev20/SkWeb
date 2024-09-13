@@ -23,7 +23,7 @@ const ServiceItemsModal: React.FC<ServiceItemsModalProps> = ({ service, onClose,
   if (imageUrls.length === 0) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-        <div className="bg-white p-4 sm:p-5 rounded-lg w-11/12 sm:w-4/5 md:w-2/3 lg:w-1/2 max-w-md relative">
+        <div className="bg-white p-4 sm:p-5 rounded-lg w-11/12 sm:w-4/5 md:w-2/3 lg:w-1/2 max-w-md relative h-[600px] overflow-y-auto">
           <button
             onClick={onClose}
             className="absolute top-2 right-2 text-gray-600 text-2xl sm:text-3xl font-bold focus:outline-none"
@@ -46,20 +46,19 @@ const ServiceItemsModal: React.FC<ServiceItemsModalProps> = ({ service, onClose,
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white p-4 sm:p-14 rounded-lg w-[80%] sm:w-[60%] md:w-2/3 lg:w-1/2 max-w-md relative">
+      <div className="bg-white p-4 sm:p-6 rounded-lg w-[80%] sm:w-[60%] md:w-2/3 lg:w-1/2 max-w-md relative h-[600px] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-600 text-2xl sm:text-3xl font-bold focus:outline-none"
         >
           &times;
         </button>
-        
-     
-        <div className="relative mb-4 mt-12">
+
+        <div className="relative mb-6 mt-10"> {/* Adjusted margin-top for the image */}
           <img
             src={imageUrls[currentImageIndex]}
             alt={`Service Image ${currentImageIndex + 1}`}
-            className="w-[400px] h-[400px] max-w-full max-h-80 rounded-lg md:w-[400px] md:h-[250px] mx-auto" // Adjust width and height for mobile and larger screens
+            className="w-[250px] h-[250px] max-w-full max-h-[250px] rounded-lg mx-auto" // Reduced size
           />
           {imageUrls.length > 1 && (
             <div className="absolute inset-0 flex justify-between items-center">

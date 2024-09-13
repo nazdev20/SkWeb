@@ -13,6 +13,9 @@ import 'leaflet/dist/leaflet.css';
 import Main from './pages/admin/main';
 import HomeSection from './components/ui/pages/HomeSection';
 
+import FAQPage from './pages/user/faq';
+import Footer from './pages/user/Footer';
+
 
 
 
@@ -27,7 +30,7 @@ function App() {
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/events" element={<Events />} />
           <Route path="/involvement" element={<InvolvementPage />} />
-          <Route path="/main" element={<Main />}/>
+          <Route path="/admin" element={<Main />}/>
         </Routes>
         <div id="home">
           <Home />
@@ -44,8 +47,12 @@ function App() {
         </div>
         <InvolvementPage/>
         <FloatingChatButton /> 
-      <Main/>    
-       
+         <FAQPage/>
+         
+          <Footer/>
+        <div className='mt-48'>
+          <Main/>
+        </div>
         
       </Router>
     </AuthProvider>
