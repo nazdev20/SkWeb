@@ -50,9 +50,7 @@ function App() {
          <FAQPage/>
          
           <Footer/>
-        <div className='mt-48'>
         
-        </div>
         
       </Router>
     </AuthProvider>

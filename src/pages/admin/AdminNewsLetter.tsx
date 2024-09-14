@@ -135,6 +135,7 @@ const AdminNewsletter: React.FC = () => {
         <h2 className="text-xl font-semibold mb-4">{editing ? 'Edit Newsletter' : 'Add New Newsletter'}</h2>
         <form onSubmit={(e) => {
           e.preventDefault();
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           editing ? handleUpdateNewsletter(editing) : handleAddNewsletter();
         }}>
           <input type="text" name="title" placeholder="Title" value={formData.title} onChange={handleChange} className="block w-full mb-2 p-2 border border-gray-300 rounded" />

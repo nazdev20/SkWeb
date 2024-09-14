@@ -13,6 +13,7 @@ const ServiceItems: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({});
   const [fileUploads, setFileUploads] = useState<Record<string, File | null>>({});
   const [loading, setLoading] = useState<boolean>(true);
+  const [dataFetched, setDataFetched] = useState<boolean>(false); // New state to track if data was fetched
   const servicesCollectionRef = collection(db, 'services');
   const applicationsCollectionRef = collection(db, 'applications');
 
@@ -23,6 +24,7 @@ const ServiceItems: React.FC = () => {
       const servicesData = data.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Service);
       console.log('Fetched services:', servicesData);
       setServices(servicesData);
+      setDataFetched(true);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching services:', error);
@@ -31,10 +33,10 @@ const ServiceItems: React.FC = () => {
   };
 
   useEffect(() => {
-    if (services.length === 0) {
+    if (!dataFetched) {
       fetchServices();
     }
-  }, [services]);
+  }, [dataFetched]);
 
   const handleFileChange = (serviceId: string, file: File | null) => {
     setFileUploads({
@@ -103,7 +105,6 @@ const ServiceItems: React.FC = () => {
             className="flex flex-col items-center text-center border-2 border-gray-200 p-4 rounded-lg shadow-lg hover:scale-105 transition-transform duration-300 cursor-pointer"
             onClick={() => openServiceItemsModal(service)}
           >
-         
             <div
               className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-gray-300 bg-gray-200"
               style={{
@@ -112,7 +113,6 @@ const ServiceItems: React.FC = () => {
                 backgroundPosition: 'center',
               }}
             />
-            {/* Text Below the Image */}
             <div className="mt-4">
               <h3 className="text-lg md:text-xl font-bold">{service.title}</h3>
               <p className="text-sm md:text-base mt-2">{service.description}</p>
@@ -121,7 +121,6 @@ const ServiceItems: React.FC = () => {
         ))
       )}
 
-      {/* Modal for the selected service */}
       {selectedService && (
         <ServiceItemsModal
           service={selectedService}
