@@ -6,21 +6,15 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white rounded-lg overflow-hidden shadow-lg w-full max-w-sm md:max-w-lg relative">
-
+      <div className="bg-white rounded-lg overflow-hidden shadow-lg w-full max-w-sm md:max-w-lg relative h-[600px]"> {/* Adjust height here */}
         <button
-          className="absolute top-2 right-2 text-gray-600 text-2xl font-bold focus:outline-none z-60"
+          className="absolute top-2 right-2 text-gray-600 text-2xl md:text-2xl font-bold focus:outline-none z-60"
           onClick={onClose}
         >
           &times;
         </button>
-
-  
-        <div className="p-4 md:p-6 h-full">
-        
-          <div className="max-h-[400px] overflow-y-auto">
-            {children}
-          </div>
+        <div className="p-4 md:p-6 h-full overflow-auto">
+          {children}
         </div>
       </div>
     </div>

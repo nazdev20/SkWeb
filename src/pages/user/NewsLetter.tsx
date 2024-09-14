@@ -13,23 +13,28 @@ interface Newsletter {
 
 const Newsletter: React.FC = () => {
   const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
-  
+  const [dataFetched, setDataFetched] = useState<boolean>(false); // New state to track if data was fetched
+
   const newslettersCollectionRef = collection(db, 'newsletters');
 
   useEffect(() => {
     const fetchNewsletters = async () => {
       try {
+        // Check if data has already been fetched
+        if (dataFetched) return;
+
         const data: QuerySnapshot<DocumentData> = await getDocs(newslettersCollectionRef);
         setNewsletters(
           data.docs.map((doc) => ({ ...doc.data(), id: doc.id } as Newsletter))
         );
+        setDataFetched(true); // Set dataFetched to true once data is fetched
       } catch (error) {
         console.error('Error fetching newsletters:', error);
       }
     };
 
     fetchNewsletters();
-  }, [newslettersCollectionRef]);
+  }, [dataFetched, newslettersCollectionRef]);
 
   return (
     <div className="p-4 md:p-8 min-h-screen bg-gray-100">
