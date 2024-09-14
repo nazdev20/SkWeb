@@ -25,40 +25,41 @@ const AdminNewsletter: React.FC = () => {
 
   const newslettersCollectionRef = collection(db, 'newsletters');
 
+  const fetchNewsletters = async () => {
+    if (loading || !hasMore) return; // Prevent fetching if already loading or no more data
+
+    setLoading(true);
+    let q = query(newslettersCollectionRef, orderBy('title'), limit(10));
+    if (lastVisible) {
+      q = query(q, startAfter(lastVisible));
+    }
+
+    try {
+      const data: QuerySnapshot<DocumentData> = await getDocs(q);
+      if (data.empty) {
+        setHasMore(false); // No more data to fetch
+      } else {
+        const fetchedNewsletters = data.docs.map(doc => ({
+          ...doc.data(),
+          id: doc.id,
+        } as Newsletter));
+
+        // Only append unique newsletters (avoiding duplicates)
+        setNewsletters(prev => [
+          ...prev,
+          ...fetchedNewsletters.filter(newsletter => !prev.some(n => n.id === newsletter.id)),
+        ]);
+        setLastVisible(data.docs[data.docs.length - 1]); // Update lastVisible to the last document
+      }
+    } catch (error) {
+      console.error('Error fetching newsletters:', error);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchNewsletters = async () => {
-      if (loading || !hasMore) return; // Prevent fetching if already loading or no more data
-
-      setLoading(true);
-      let q = query(newslettersCollectionRef, orderBy('title'), limit(10));
-      if (lastVisible) {
-        q = query(q, startAfter(lastVisible));
-      }
-
-      try {
-        const data: QuerySnapshot<DocumentData> = await getDocs(q);
-        console.log('Fetched data:', data.docs.map(doc => doc.data())); // Log fetched data
-        if (data.empty) {
-          setHasMore(false); // No more data to fetch
-        } else {
-          const fetchedNewsletters = data.docs.map(doc => ({ ...doc.data(), id: doc.id } as Newsletter));
-          console.log('Fetched newsletters:', fetchedNewsletters); // Log fetched newsletters
-          setNewsletters(prev => {
-            // Avoid duplicating records
-            const existingIds = new Set(prev.map(newsletter => newsletter.id));
-            const uniqueNewsletters = fetchedNewsletters.filter(newsletter => !existingIds.has(newsletter.id));
-            return [...prev, ...uniqueNewsletters];
-          });
-          setLastVisible(data.docs[data.docs.length - 1]); // Update lastVisible to the last document
-        }
-      } catch (error) {
-        console.error('Error fetching newsletters:', error);
-      }
-      setLoading(false);
-    };
-
-    fetchNewsletters();
-  }, [lastVisible, loading, hasMore]);
+    fetchNewsletters(); // Initial fetch on component mount
+  }, []); // Empty dependency array to ensure it only runs once
 
   const handleAddNewsletter = async () => {
     let imageUrl = formData.imageUrl;
@@ -72,8 +73,8 @@ const AdminNewsletter: React.FC = () => {
     await addDoc(newslettersCollectionRef, { ...formData, imageUrl });
     setFormData({ title: '', description: '', imageUrl: '' });
     setImageFile(null);
-    setLastVisible(null); // Reset pagination when adding a new newsletter
-    setNewsletters([]); // Clear existing list to avoid stale data
+    setHasMore(true); // Allow loading more data after adding
+    fetchNewsletters(); // Refetch to get the updated list without clearing the previous data
   };
 
   const handleUpdateNewsletter = async (id: string) => {
@@ -89,15 +90,14 @@ const AdminNewsletter: React.FC = () => {
     await updateDoc(newsletterDoc, { ...formData, imageUrl });
     setEditing(null);
     setImageFile(null);
-    setLastVisible(null); // Reset pagination when updating a newsletter
-    setNewsletters([]); // Clear existing list to avoid stale data
+    fetchNewsletters(); // Refetch updated list
   };
 
   const handleDeleteNewsletter = async (id: string) => {
     const newsletterDoc = doc(db, 'newsletters', id);
     await deleteDoc(newsletterDoc);
-    setLastVisible(null); // Reset pagination when deleting a newsletter
-    setNewsletters([]); // Clear existing list to avoid stale data
+    setHasMore(true); // Allow loading more data after deletion
+    fetchNewsletters(); // Refetch after deletion
   };
 
   const handleEdit = (newsletter: Newsletter) => {
@@ -124,7 +124,7 @@ const AdminNewsletter: React.FC = () => {
 
   const handleLoadMore = () => {
     if (!loading && hasMore) {
-      setLastVisible(prev => prev); 
+      fetchNewsletters(); // Fetch more data on load more click
     }
   };
 
