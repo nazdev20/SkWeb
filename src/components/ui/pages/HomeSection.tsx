@@ -1,9 +1,27 @@
+import { useEffect, useState } from "react";
 import Sk from "../../../assets/Hero section/SK KABATAAANNNNN.jpg";
 import { SignUp } from "../buttons";
+import { getAuth, onAuthStateChanged } from "firebase/auth"; // Import Firebase auth
 
 const HomeSection = () => {
+  const [isSignedIn, setIsSignedIn] = useState(false);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsSignedIn(true); // User is signed in
+      } else {
+        setIsSignedIn(false); // No user signed in
+      }
+    });
+
+    // Cleanup the subscription on component unmount
+    return () => unsubscribe();
+  }, []);
+
   return (
-    <div className="min-h-screen pt-16 px-4 sm:px-8"> {/* Adjust padding for mobile */}
+    <div className="min-h-screen pt-16 px-4 sm:px-8">
       <div className="flex flex-col sm:flex-row items-center justify-between w-full max-w-[100%] gap-8 sm:gap-4">
         
         {/* Text Section */}
@@ -16,11 +34,13 @@ const HomeSection = () => {
             participation in their communities. We envision a future where every young person has the tools and support they need to succeed and 
             make a positive impact.
           </p>
-          <SignUp />
+
+          {/* Conditionally render SignUp button based on sign-in status */}
+          {!isSignedIn && <SignUp />}
         </div>
 
         {/* Image Section */}
-        <div className="flex justify-center sm:ml-[-20px] w-full sm:w-1/2"> {/* Make the width responsive */}
+        <div className="flex justify-center sm:ml-[-20px] w-full sm:w-1/2">
           <img 
             src={Sk} 
             alt="Card" 
@@ -31,6 +51,6 @@ const HomeSection = () => {
       </div>
     </div>
   );
-}
+};
 
 export default HomeSection;

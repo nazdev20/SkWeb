@@ -1,7 +1,25 @@
+import { useEffect, useState } from "react";
 import { Learnmore, SignUp } from '../../components/ui/buttons';
-import bg from '../../assets/Hero section/bg.jpg'
+import bg from '../../assets/Hero section/bg.jpg';
+import { getAuth, onAuthStateChanged } from "firebase/auth"; // Import Firebase auth
 
 const Home = () => {
+  const [isSignedIn, setIsSignedIn] = useState(false);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsSignedIn(true); // User is signed in
+      } else {
+        setIsSignedIn(false); // No user signed in
+      }
+    });
+
+    // Cleanup the subscription on component unmount
+    return () => unsubscribe();
+  }, []);
+
   return (
     <div className="relative w-full h-[700px]">
       {/* Background Image */}
@@ -23,12 +41,14 @@ const Home = () => {
           </p>
         </div>
 
-        <div className='flex space-x-4'>
-          <Learnmore />
-          <SignUp />
-        </div>
+        {/* Conditionally render buttons based on sign-in status */}
+        {!isSignedIn && (
+          <div className='flex space-x-4'>
+            <Learnmore />
+            <SignUp />
+          </div>
+        )}
       </div>
-     
     </div>
   );
 };

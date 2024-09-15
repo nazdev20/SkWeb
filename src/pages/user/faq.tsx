@@ -11,15 +11,19 @@ const FAQPage: React.FC = () => {
     },
     {
       question: "How to join SK?",
-      answer: "Sangguniang Kabataan (SK) is a youth council in the Philippines that represents the youth in the local government. It aims to empower the youth and address their concerns and needs."
+      answer: "To join Sangguniang Kabataan (SK), you must be a Filipino citizen, aged 15 to 30 years old, and a resident of the barangay where you intend to run for a position. You must also meet the eligibility requirements set by the Commission on Elections (COMELEC)."
     },
     {
-      question: "What are SK Programs?",
-      answer: "Sangguniang Kabataan (SK) is a youth council in the Philippines that represents the youth in the local government. It aims to empower the youth and address their concerns and needs."
+      question: "What are SK programs?",
+      answer: "Sangguniang Kabataan (SK) implements various programs and projects for the youth, such as sports development, skills training, environmental initiatives, and community outreach activities. These programs aim to promote the holistic development of the youth and address their specific needs."
     },
     {
       question: "How can I contribute?",
-      answer: "Sangguniang Kabataan (SK) is a youth council in the Philippines that represents the youth in the local government. It aims the youth and address their concerns and needs."
+      answer: "You can contribute to Sangguniang Kabataan (SK) by actively participating in its programs and projects, volunteering your time and skills, and providing feedback and suggestions to improve the youth council's initiatives. Your involvement can make a positive impact on the youth in your community."
+    },
+    {
+      question: "How to contact SK?",
+      answer: "To contact Sangguniang Kabataan (SK), you can reach out to your local SK officials or visit the SK office in your barangay. You can also contact the SK national office for inquiries and assistance."
     }
   ];
 
@@ -43,13 +47,13 @@ const FAQPage: React.FC = () => {
         <div className="w-full lg:w-2/3">
           {faqs.map((faq, index) => (
             <div key={index} className="border-t border-gray-300 mb-4">
-              <div 
-                className="flex justify-between items-center py-4 cursor-pointer"
+              <button
+                className="flex justify-between items-center w-full py-4 text-left"
                 onClick={() => toggleFAQ(index)}
               >
                 <h3 className="text-lg lg:text-xl font-medium">{faq.question}</h3>
                 <span className="text-lg lg:text-xl">{activeIndex === index ? "▲" : "▼"}</span>
-              </div>
+              </button>
               {activeIndex === index && (
                 <div className="py-2 text-gray-600 text-sm lg:text-base">
                   <p>{faq.answer}</p>
