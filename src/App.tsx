@@ -50,7 +50,7 @@ function App() {
          <FAQPage/>
          
           <Footer/>
-        
+        <Main/>
         
       </Router>
     </AuthProvider>
