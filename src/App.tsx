@@ -14,49 +14,39 @@ import HomeSection from './components/ui/pages/HomeSection';
 import FAQPage from './pages/user/faq';
 import Footer from './pages/user/Footer';
 
+
+function UserPageLayout() {
+  return (
+    <>
+      <Navbar />
+      <div id="home">
+        <Home />
+        <HomeSection />
+      </div>
+      <div id="service">
+        <Service />
+      </div>
+      <div id="newsletter">
+        <Newsletter />
+      </div>
+      <div id="events">
+        <Events />
+      </div>
+      <InvolvementPage />
+      <FloatingChatButton />
+      <FAQPage />
+      <Footer />
+    </>
+  )
+}
+
 function App() {
   return (
-    <Router>
+    <Router basename='/SkWeb'>
       <AuthProvider>
         <Routes>
-         
           <Route path="/admin" element={<Main />} />
-
-     
-          <Route
-            path="*"
-            element={
-              <>
-                <Navbar />
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/service" element={<Service />} />
-                  <Route path="/newsletter" element={<Newsletter />} />
-                  <Route path="/events" element={<Events />} />
-                  <Route path="/involvement" element={<InvolvementPage />} />
-                </Routes>
-                
-                
-                <div id="home">
-                  <Home />
-                  <HomeSection />
-                </div>
-                <div id="service">
-                  <Service />
-                </div>
-                <div id="newsletter">
-                  <Newsletter />
-                </div>
-                <div id="events">
-                  <Events />
-                </div>
-                <InvolvementPage />
-                <FloatingChatButton />
-                <FAQPage />
-                <Footer />
-              </>
-            }
-          />
+          <Route path="*" element={<UserPageLayout />} />
         </Routes>
       </AuthProvider>
     </Router>

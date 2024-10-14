@@ -21,29 +21,32 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="relative w-full h-[700px]">
+    <div className="relative w-full h-screen" id="home">
     
       <div
         className='absolute inset-0 bg-cover bg-center'
-        style={{ backgroundImage: `url(${bg})` }}
+        style={{ 
+          backgroundImage: `url(${bg})`,
+          backgroundRepeat: 'no-repeat',
+        }}
       >
         
         <div className="absolute inset-0 bg-blue-800 opacity-50"></div>
       </div>
 
-      <div className='relative flex flex-col items-center justify-center h-full w-full text-center text-white'>
+      <div className='relative flex flex-col items-center justify-center h-full max-w-4xl mx-auto text-center text-white p-4 md:p-8'>
         <div className='mb-4'>
-          <h1 className='font-serif font-bold text-5xl p-5'>
-            Empowerment Youth for a <br /> Better Future
+          <h1 className='font-serif font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl p-2'>
+            Empowerment Youth for a Better Future
           </h1>
-          <p className='text-xl'>
-            Welcome to the official website of Sangguniang Kabataan, where we aim to provide <br /> opportunities, support, and representation for the youth in our community.
+          <p className='text-base md:text-xl'>
+            Welcome to the official website of Sangguniang Kabataan, where we aim to provide opportunities, support, and representation for the youth in our community.
           </p>
         </div>
 
        
         {!isSignedIn && (
-          <div className='flex space-x-4'>
+          <div className='flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 mt-4'>
             <Learnmore />
             <SignUp />
           </div>

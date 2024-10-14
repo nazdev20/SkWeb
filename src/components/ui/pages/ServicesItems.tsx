@@ -22,7 +22,7 @@ const ServiceItems: React.FC = () => {
       setLoading(true);
       const data = await getDocs(servicesCollectionRef);
       const servicesData = data.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Service);
-      console.log('Fetched services:', servicesData);
+      //console.log('Fetched services:', servicesData);
       setServices(servicesData);
       setDataFetched(true);
       setLoading(false);
