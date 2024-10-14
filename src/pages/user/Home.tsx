@@ -22,12 +22,12 @@ const Home = () => {
 
   return (
     <div className="relative w-full h-[700px]">
-      {/* Background Image */}
+    
       <div
         className='absolute inset-0 bg-cover bg-center'
         style={{ backgroundImage: `url(${bg})` }}
       >
-        {/* Fading Blue Overlay */}
+        
         <div className="absolute inset-0 bg-blue-800 opacity-50"></div>
       </div>
 
@@ -41,7 +41,7 @@ const Home = () => {
           </p>
         </div>
 
-        {/* Conditionally render buttons based on sign-in status */}
+       
         {!isSignedIn && (
           <div className='flex space-x-4'>
             <Learnmore />

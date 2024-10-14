@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const FAQPage: React.FC = () => {
-  // State to manage which FAQ item is active (expanded)
+ 
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const faqs = [

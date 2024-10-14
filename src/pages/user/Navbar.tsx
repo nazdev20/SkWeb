@@ -1,14 +1,18 @@
 import { useState } from 'react';
+
 import { navItems } from '../../data/data';
-import { SignUp } from '../../components/ui/buttons';
 import logo from "../../assets/Hero section/LOGO_SK-removebg-preview.png";
+import { SignUp } from '../../components/ui/buttons';
 
 const Navbar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
 
   const handleSidebarToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
+
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -28,7 +32,6 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Sidebar for mobile view */}
       <div
         className={`fixed inset-0 bg-black bg-opacity-50 z-40 transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -54,13 +57,9 @@ const Navbar = () => {
               </li>
             ))}
           </ul>
-          <div className="mt-auto">
-            <SignUp />
-          </div>
         </div>
       </div>
 
-      {/* Navbar for desktop and mobile view */}
       <nav className="bg-white p-4 fixed w-full z-30 flex flex-col md:flex-row items-center justify-between max-h-[75px]">
         <div className="flex items-center w-full justify-center md:w-auto md:justify-start">
           <img
@@ -76,7 +75,7 @@ const Navbar = () => {
             ☰
           </button>
         </div>
-        <ul className="hidden md:flex flex-row space-x-4 md:gap-32 mt-4 md:mt-0 justify-center ">
+        <ul className="hidden md:flex flex-row space-x-4 md:gap-32 mt-4 md:mt-0 justify-center">
           {navItems.map((item, index) => (
             <li
               key={index}
@@ -89,9 +88,7 @@ const Navbar = () => {
             </li>
           ))}
         </ul>
-        <div className="hidden md:block mt-4 md:mt-0">
-          <SignUp />
-        </div>
+        <SignUp/>
       </nav>
     </>
   );
