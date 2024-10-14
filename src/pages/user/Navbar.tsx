@@ -27,7 +27,7 @@ const Navbar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const scrollToSection = (id) => {
+  const scrollToSection = (id: string) => { // Explicitly define the type for id
     const element = document.getElementById(id);
     if (element) {
       const offset = 60;
