@@ -1,61 +1,75 @@
-// src/components/SignUp.tsx
-
 import { useAuth } from '../../Auth/AuthContext';
 
-export const SignUp = () => {
+interface SignUpProps {
+  transparent?: boolean;
+}
+
+// Reusable Button Component
+const AuthButton: React.FC<{ label: string; onClick: () => void; className: string }> = ({ label, onClick, className }) => {
+  return (
+    <button
+      onClick={onClick}
+      className={`${className} px-4 py-2 transition-transform duration-300 ease-in-out hover:scale-105`}
+    >
+      {label}
+    </button>
+  );
+};
+
+// SignUp Component
+export const SignUp = ({ transparent }: SignUpProps) => {
   const { user, openAuthModal, signOut } = useAuth();
 
   return (
     <div>
       {user ? (
-        <button
+        <AuthButton
+          label="Sign Out"
           onClick={signOut}
-          className="bg-slate-950 border  text-white px-4 py-2 transition-transform duration-300 ease-in-out hover:bg-[#2a2388] hover:scale-105"
-        >
-          Sign Out
-        </button>
+          className="bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+        />
       ) : (
-        <button
+        <AuthButton
+          label="Sign Up"
           onClick={openAuthModal}
-          className="bg-slate-950 border  text-white px-4 py-2 transition-transform duration-300 ease-in-out hover:bg-[#2a2388] hover:scale-105"
-        >
-          Sign Up
-        </button>
+          className={`${
+            transparent
+              ? 'bg-transparent border border-black text-black'  
+              : 'bg-slate-950 text-white'
+          }`}
+        />
       )}
     </div>
   );
 };
 
-export const Learnmore = ()=>{
+// Learnmore Button Component
+export const Learnmore = () => {
+  return (
+    <button className="bg-slate-950 border text-white px-4 py-2 transition-transform duration-300 ease-in-out hover:bg-[#2a2388] hover:scale-105 cursor-pointer mb-4">
+      Learn More
+    </button>
+  );
+};
 
-return(
-   <button className='bg-slate-950 border  text-white px-4 py-2 transition-transform duration-300 ease-in-out hover:bg-[#2a2388] hover:scale-105 cursor-pointer mb-4'>
-          Learn More
-        </button>
-)
-}
-
-
-
+// SignIn Component
 export const SignIn = () => {
   const { user, openAuthModal, signOut } = useAuth();
 
   return (
     <div>
       {user ? (
-        <button
+        <AuthButton
+          label="Sign Out"
           onClick={signOut}
-          className="bg-slate-950 border  text-white px-4 py-2 transition-transform duration-300 ease-in-out hover:bg-[#2a2388] hover:scale-105"
-        >
-          Sign Out
-        </button>
+          className="bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+        />
       ) : (
-        <button
+        <AuthButton
+          label="Sign In"
           onClick={openAuthModal}
-          className="bg-slate-950 border  text-white px-4 py-2 transition-transform duration-300 ease-in-out hover:bg-[#2a2388] hover:scale-105"
-        >
-          Sign In
-        </button>
+          className="bg-slate-950 text-white hover:bg-[#2a2388]"
+        />
       )}
     </div>
   );

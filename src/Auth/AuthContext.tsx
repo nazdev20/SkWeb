@@ -1,11 +1,10 @@
-// src/context/AuthContext.tsx
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { auth } from '../config/firebaseconfig';
 import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import AuthModal from '../modals/AuthModal';
 
 interface AuthContextType {
-  user: unknown; // Replace 'any' with a more specific type if needed
+  user: unknown;
   isAuthOpen: boolean;
   openAuthModal: () => void;
   closeAuthModal: () => void;
@@ -15,12 +14,19 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<unknown>(null); // Replace 'any' with a more specific type if needed
+  const [user, setUser] = useState<unknown>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
+  // Check if the page needs to reload based on sign-in or sign-out action
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+
+      // Check if there's a flag to trigger reload (for sign-in or sign-up)
+      if (user && sessionStorage.getItem('shouldReload') === 'true') {
+        sessionStorage.removeItem('shouldReload'); // Remove flag after reload
+        window.location.reload();  // Trigger reload once
+      }
     });
 
     return () => unsubscribe();
@@ -31,8 +37,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signOut = async () => {
     try {
+      sessionStorage.setItem('shouldReload', 'true'); // Set reload flag
       await firebaseSignOut(auth);
-      alert('Sign out successful!');
+      window.location.reload();  // Trigger reload once after sign out
     } catch (err) {
       console.error('Error signing out:', err);
     }
@@ -41,7 +48,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   return (
     <AuthContext.Provider value={{ user, isAuthOpen, openAuthModal, closeAuthModal, signOut }}>
       {children}
-      {isAuthOpen && <AuthModal />} {/* Render AuthModal based on context */}
+      {isAuthOpen && <AuthModal />}
     </AuthContext.Provider>
   );
 };
