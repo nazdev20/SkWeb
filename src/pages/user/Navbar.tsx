@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { navItems as defaultNavItems } from '../../data/data'; // Assuming defaultNavItems is the original array
+import { useNavigate, useLocation } from 'react-router-dom'; // Import useLocation
+import { navItems as defaultNavItems } from '../../data/data'; 
 import logo from "../../assets/Hero section/LOGO_SK-removebg-preview.png";
 import { SignUp } from '../../components/ui/buttons';
 import { FaUserShield } from 'react-icons/fa';
+
+interface NavItem {
+  name: string;
+  id: string;
+}
 
 const Navbar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -14,29 +19,24 @@ const Navbar = () => {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation(); // Get the current location
 
   useEffect(() => {
-    // Check localStorage for admin login status
     const adminStatus = localStorage.getItem('isAdminLoggedIn');
-    if (adminStatus === 'true') {
-      setIsAdminLoggedIn(true);
-    }
+    setIsAdminLoggedIn(adminStatus === 'true');
   }, []);
 
   const handleSidebarToggle = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const scrollToSection = (id: string) => { // Explicitly define the type for id
+  const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
       const offset = 60;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth',
-      });
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
     }
     if (isSidebarOpen) {
       handleSidebarToggle();
@@ -44,14 +44,13 @@ const Navbar = () => {
   };
 
   const handleAdminLogin = () => {
-    const adminEmail = 'SK@Camohaguin';
-    const adminPassword = 'Camohaguin2024';
+    const adminEmail = process.env.REACT_APP_ADMIN_EMAIL || 'defaultEmail';
+    const adminPassword = process.env.REACT_APP_ADMIN_PASSWORD || 'defaultPassword';
 
     if (email === adminEmail && password === adminPassword) {
       setError('');
       setIsAdminModalOpen(false);
       setIsAdminLoggedIn(true);
-      // Set login status in localStorage
       localStorage.setItem('isAdminLoggedIn', 'true');
     } else {
       setError('Invalid email or password');
@@ -60,20 +59,29 @@ const Navbar = () => {
 
   const handleAdminLogout = () => {
     setIsAdminLoggedIn(false);
-    // Clear login status from localStorage
     localStorage.removeItem('isAdminLoggedIn');
-    navigate('/'); // Navigate to home after logout
+    navigate('/');
   };
 
-  // Create navItems based on admin login status
-  const navItems = [
+  const navItems: NavItem[] = [
     ...defaultNavItems,
     ...(isAdminLoggedIn ? [{ name: 'Admin', id: 'admin' }] : []),
   ];
 
+  const handleNavItemClick = (item: NavItem) => {
+    if (item.id === 'admin') {
+      navigate('/admin');
+    } else {
+      if (location.pathname === '/admin') {
+        navigate('/'); // Redirect to home if currently on /admin
+      } else {
+        scrollToSection(item.id);
+      }
+    }
+  };
+
   return (
     <>
-      {/* Admin Login Modal */}
       <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${isAdminModalOpen ? 'block' : 'hidden'}`}>
         <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
           <h2 className="text-lg font-bold mb-4">Admin Log In</h2>
@@ -107,15 +115,9 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Sidebar */}
-      <div
-        className={`fixed inset-0 bg-black bg-opacity-50 z-40 transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-300 ease-in-out md:hidden`}
-      >
+      <div className={`fixed inset-0 bg-black bg-opacity-50 z-40 transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-300 ease-in-out md:hidden`}>
         <div className="w-64 h-full bg-gradient-to-r from-[#e3f9ff] to-[#b5e8ff] p-4 relative flex flex-col">
-          <button
-            className="text-black font-bold text-2xl self-end"
-            onClick={handleSidebarToggle}
-          >
+          <button className="text-black font-bold text-2xl self-end" onClick={handleSidebarToggle}>
             &times;
           </button>
           <ul className="mt-12 flex flex-col space-y-4">
@@ -123,13 +125,7 @@ const Navbar = () => {
               <li
                 key={index}
                 className="text-black font-bold cursor-pointer font-serif hover:bg-gradient-to-r hover:from-orange-400 hover:to-blue-900 hover:text-transparent hover:bg-clip-text transition duration-300 ease-in-out"
-                onClick={() => {
-                  if (item.id === 'admin') {
-                    navigate('/admin'); // Navigate to /admin when "Admin" is clicked
-                  } else {
-                    scrollToSection(item.id);
-                  }
-                }}
+                onClick={() => handleNavItemClick(item)} // Use the new handler
               >
                 {item.name}
               </li>
@@ -141,7 +137,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Navbar */}
       <nav className="bg-white p-4 fixed w-full z-30 flex flex-col md:flex-row items-center justify-between max-h-[75px]">
         <div className="flex items-center w-full justify-center md:w-auto md:justify-start">
           <img
@@ -152,6 +147,7 @@ const Navbar = () => {
           />
           <button
             className="md:hidden text-black font-bold text-2xl ml-auto"
+            aria-label="Open Sidebar"
             onClick={handleSidebarToggle}
           >
             ☰
@@ -162,13 +158,7 @@ const Navbar = () => {
             <li
               key={index}
               className="text-black font-bold cursor-pointer font-serif hover:bg-gradient-to-r hover:from-orange-400 hover:to-blue-900 hover:text-transparent hover:bg-clip-text transition duration-300 ease-in-out"
-              onClick={() => {
-                if (item.id === 'admin') {
-                  navigate('/admin'); // Navigate to /admin when "Admin" is clicked
-                } else {
-                  scrollToSection(item.id);
-                }
-              }}
+              onClick={() => handleNavItemClick(item)} // Use the new handler
             >
               {item.name}
             </li>
@@ -177,21 +167,21 @@ const Navbar = () => {
 
         <div className="hidden md:flex items-center space-x-4">
           <SignUp transparent />
-          {/* Admin Icon to Open Login Modal */}
           {isAdminLoggedIn ? (
             <button
               onClick={handleAdminLogout}
-              className="flex items-center bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition duration-300"
+              className="flex items-center bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition duration-300 ease-in-out"
             >
-              <span className="ml-1">Sign Out</span>
+              <FaUserShield className="mr-2" />
+              Log Out
             </button>
           ) : (
             <button
               onClick={() => setIsAdminModalOpen(true)}
-              className="flex items-center bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition duration-300"
+              className="flex items-center bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition duration-300 ease-in-out"
             >
-              <FaUserShield className="text-xl" />
-              <span className="ml-1">Admin</span>
+              <FaUserShield className="mr-2" />
+              Admin
             </button>
           )}
         </div>

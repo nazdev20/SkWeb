@@ -16,7 +16,7 @@ import Footer from './pages/user/Footer';
 
 function App() {
   return (
-    <Router>
+    <Router basename='/SkWeb'>
       <AuthProvider>
         <Routes>
          
