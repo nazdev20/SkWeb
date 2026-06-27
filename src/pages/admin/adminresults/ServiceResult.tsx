@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../../config/firebaseconfig';
+import { useModal } from '../../../context/ModalContext';
 
 interface ApplicationData {
-  [key: string]: string | number | string[] | number[] | boolean; // Adjust types based on your data structure
+  [key: string]: string | number | string[] | number[] | boolean;
 }
 
 interface Application {
@@ -13,9 +14,10 @@ interface Application {
 
 const ServiceResult = () => {
   const [applications, setApplications] = useState<Application[]>([]);
-  const [services, setServices] = useState<Record<string, string>>({}); // Maps serviceId to serviceTitle
+  const [services, setServices] = useState<Record<string, string>>({});
   const [, setUserInput] = useState<{ [id: string]: ApplicationData }>({});
   const [servicesLoaded, setServicesLoaded] = useState(false);
+  const { showModal } = useModal();
 
   useEffect(() => {
     const fetchServices = () => {
@@ -27,16 +29,18 @@ const ServiceResult = () => {
           return acc;
         }, {});
         setServices(servicesData);
-        setServicesLoaded(true); // Mark services as fully loaded
+        setServicesLoaded(true);
       }, (error) => {
         console.error('Error fetching services:', error);
+        showModal('Error', 'Failed to fetch services.');
       });
 
-      return unsubscribe; // Cleanup function for unsubscribing from snapshot listener
+      return unsubscribe;
     };
 
     const unsubscribeServices = fetchServices();
-    return () => unsubscribeServices(); // Unsubscribe on component unmount
+    return () => unsubscribeServices();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -51,7 +55,7 @@ const ServiceResult = () => {
         const serviceTitle = services[serviceId] || 'Unknown Service';
 
         if (serviceTitle === 'Unknown Service') {
-          await deleteDoc(doc.ref); // Delete the record from Firestore only if the service is unknown
+          await deleteDoc(doc.ref);
         } else {
           filteredAppsData.push({
             id: doc.id,
@@ -63,10 +67,11 @@ const ServiceResult = () => {
       setApplications(filteredAppsData);
     }, (error) => {
       console.error('Error fetching applications:', error);
+      showModal('Error', 'Failed to fetch applications.');
     });
 
-    return () => unsubscribeApplications(); // Unsubscribe on component unmount
-  }, [servicesLoaded, services]);
+    return () => unsubscribeApplications();
+  }, [servicesLoaded, services, showModal]);
 
   const handleInputChange = (serviceId: string, key: string, value: string | number | boolean) => {
     setUserInput((prevInput) => ({
@@ -87,8 +92,10 @@ const ServiceResult = () => {
           app.id === applicationId ? { ...app, data: { ...app.data, qualified: true } } : app
         )
       );
+      showModal('Success', 'Application marked as qualified.');
     } catch (error) {
       console.error('Error marking as qualified:', error);
+      showModal('Error', 'Failed to mark as qualified.');
     }
   };
 
@@ -97,8 +104,10 @@ const ServiceResult = () => {
       const applicationRef = doc(db, 'applications', applicationId);
       await deleteDoc(applicationRef);
       setApplications((prevApps) => prevApps.filter((app) => app.id !== applicationId));
+      showModal('Success', 'Application unqualified and removed.');
     } catch (error) {
       console.error('Error marking as unqualified:', error);
+      showModal('Error', 'Failed to unqualify application.');
     }
   };
 
@@ -117,8 +126,8 @@ const ServiceResult = () => {
                 <h2 className="text-xl font-semibold mb-4">Service Title: {serviceTitle}</h2>
                 <div className="space-y-4">
                   {Object.entries(application.data)
-                    .filter(([key]) => key !== 'qualified') // Exclude the qualified field from rendering
-                    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB)) // Sort fields alphabetically
+                    .filter(([key]) => key !== 'qualified')
+                    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
                     .map(([key, value], index) => (
                       <div key={index} className="mb-4">
                         <label className="block font-medium text-gray-600">{key}</label>

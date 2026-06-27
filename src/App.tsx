@@ -13,7 +13,7 @@ import Main from './pages/admin/main';
 import HomeSection from './components/ui/pages/HomeSection';
 import FAQPage from './pages/user/faq';
 import Footer from './pages/user/Footer';
-
+import { ModalProvider } from './context/ModalContext';
 
 function UserPageLayout() {
   return (
@@ -37,17 +37,19 @@ function UserPageLayout() {
       <FAQPage />
       <Footer />
     </>
-  )
+  );
 }
 
 function App() {
   return (
-    <Router basename='/SkWeb'>
+    <Router basename="/SkWeb">
       <AuthProvider>
-        <Routes>
-          <Route path="/admin" element={<Main />} />
-          <Route path="*" element={<UserPageLayout />} />
-        </Routes>
+        <ModalProvider>
+          <Routes>
+            <Route path="/admin" element={<Main />} />
+            <Route path="*" element={<UserPageLayout />} />
+          </Routes>
+        </ModalProvider>
       </AuthProvider>
     </Router>
   );

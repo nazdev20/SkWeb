@@ -3,6 +3,7 @@ import { db, storage } from '../../config/firebaseconfig';
 import { collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, DocumentData } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Service, FormField } from '../../data/data';
+import { useModal } from '../../context/ModalContext';
 
 const AdminServices: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
@@ -16,6 +17,7 @@ const AdminServices: React.FC = () => {
   const [formFields, setFormFields] = useState<FormField[]>([{ label: '', type: 'text' }]);
   const [editMode, setEditMode] = useState<boolean>(false);
   const [editServiceId, setEditServiceId] = useState<string | null>(null);
+  const { showModal } = useModal();
 
   const servicesCollectionRef = collection(db, 'services');
 
@@ -24,10 +26,12 @@ const AdminServices: React.FC = () => {
       setServices(snapshot.docs.map((doc: DocumentData) => ({ ...doc.data(), id: doc.id } as Service)));
     }, (error) => {
       console.error('Error fetching services:', error);
+      showModal('Error', 'Failed to fetch services.');
     });
 
-    return () => unsubscribe(); 
-  }, [servicesCollectionRef]);
+    return () => unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const uploadImage = async (image: File | null): Promise<string | undefined> => {
     if (!image) return;
@@ -38,38 +42,56 @@ const AdminServices: React.FC = () => {
       return imageUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
+      showModal('Upload Error', 'Failed to upload the image.');
     }
   };
 
   const addOrUpdateService = async () => {
     try {
-      const imageUrl = imageUpload ? await uploadImage(imageUpload) : newService.imageUrl;
-
-      if (imageUrl === undefined) {
-        throw new Error('Failed to upload image.');
+      // Validate that title is not empty
+      if (!newService.title.trim()) {
+        showModal('Validation Error', 'Service title is required.');
+        return;
       }
 
+      const imageUrl = imageUpload ? await uploadImage(imageUpload) : newService.imageUrl;
+
+      // Check if image upload failed
+      if (imageUpload && !imageUrl) {
+        // The error modal is already shown in uploadImage, so we just stop the process here.
+        return;
+      }
+      
       const serviceData: Omit<Service, 'id'> = { 
         title: newService.title,
         description: newService.description,
-        imageUrl,
+        imageUrl: imageUrl || '',
         formFields
       };
 
       if (editMode && editServiceId) {
         const serviceDoc = doc(db, 'services', editServiceId);
         await updateDoc(serviceDoc, serviceData);
+        showModal('Success', 'Service updated successfully!');
         setEditMode(false);
         setEditServiceId(null);
       } else {
         await addDoc(servicesCollectionRef, serviceData);
+        showModal('Success', 'Service added successfully!');
       }
 
       setNewService({ title: '', description: '', imageUrl: '', formFields: [] });
       setFormFields([{ label: '', type: 'text' }]);
-      setImageUpload(null); 
+      setImageUpload(null);
+
+      // Reset file input
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = '';
+      }
     } catch (error) {
       console.error('Error adding/updating service:', error);
+      showModal('Error', `Failed to ${editMode ? 'update' : 'add'} the service.`);
     }
   };
 
@@ -77,8 +99,10 @@ const AdminServices: React.FC = () => {
     try {
       const serviceDoc = doc(db, 'services', id);
       await deleteDoc(serviceDoc);
+      showModal('Success', 'Service deleted successfully!');
     } catch (error) {
       console.error('Error deleting service:', error);
+      showModal('Error', 'Failed to delete the service.');
     }
   };
 
@@ -102,7 +126,7 @@ const AdminServices: React.FC = () => {
       imageUrl: service.imageUrl,
       formFields: service.formFields
     });
-    setFormFields(service.formFields);
+    setFormFields(service.formFields || []); // Ensure formFields is an array
     setEditMode(true);
     setEditServiceId(service.id);
   };
@@ -186,7 +210,7 @@ const AdminServices: React.FC = () => {
           <div key={service.id} className="border-b border-gray-200 py-4">
             <h3 className="text-xl font-semibold">{service.title}</h3>
             <p>{service.description}</p>
-            <img src={service.imageUrl} alt={service.title} className="w-32 h-32 object-cover my-2" />
+            {service.imageUrl && <img src={service.imageUrl} alt={service.title} className="w-32 h-32 object-cover my-2" />}
             <button
               onClick={() => editService(service)}
               className="mr-2 bg-yellow-500 text-white p-2 rounded"

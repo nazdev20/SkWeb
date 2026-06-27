@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db, storage } from '../../config/firebaseconfig';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, DocumentData, QuerySnapshot, query, orderBy, limit, startAfter } from 'firebase/firestore';
 import { uploadBytes, ref, getDownloadURL } from 'firebase/storage';
+import { useModal } from '../../context/ModalContext';
 
 interface Newsletter {
   id: string;
@@ -22,11 +23,12 @@ const AdminNewsletter: React.FC = () => {
   const [lastVisible, setLastVisible] = useState<DocumentData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [hasMore, setHasMore] = useState<boolean>(true);
+  const { showModal } = useModal();
 
   const newslettersCollectionRef = collection(db, 'newsletters');
 
   const fetchNewsletters = async () => {
-    if (loading || !hasMore) return; // Prevent fetching if already loading or no more data
+    if (loading || !hasMore) return;
 
     setLoading(true);
     let q = query(newslettersCollectionRef, orderBy('title'), limit(10));
@@ -37,67 +39,85 @@ const AdminNewsletter: React.FC = () => {
     try {
       const data: QuerySnapshot<DocumentData> = await getDocs(q);
       if (data.empty) {
-        setHasMore(false); // No more data to fetch
+        setHasMore(false);
       } else {
         const fetchedNewsletters = data.docs.map(doc => ({
           ...doc.data(),
           id: doc.id,
         } as Newsletter));
 
-        // Only append unique newsletters (avoiding duplicates)
         setNewsletters(prev => [
           ...prev,
           ...fetchedNewsletters.filter(newsletter => !prev.some(n => n.id === newsletter.id)),
         ]);
-        setLastVisible(data.docs[data.docs.length - 1]); // Update lastVisible to the last document
+        setLastVisible(data.docs[data.docs.length - 1]);
       }
     } catch (error) {
       console.error('Error fetching newsletters:', error);
+      showModal('Error', 'There was a problem fetching newsletters.');
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchNewsletters(); // Initial fetch on component mount
-  }, []); // Empty dependency array to ensure it only runs once
+    fetchNewsletters();
+  }, []);
 
   const handleAddNewsletter = async () => {
-    let imageUrl = formData.imageUrl;
+    try {
+      let imageUrl = formData.imageUrl;
 
-    if (imageFile) {
-      const imageRef = ref(storage, `images/${Date.now()}_${imageFile.name}`); // Unique file name
-      await uploadBytes(imageRef, imageFile);
-      imageUrl = await getDownloadURL(imageRef);
+      if (imageFile) {
+        const imageRef = ref(storage, `images/${Date.now()}_${imageFile.name}`);
+        await uploadBytes(imageRef, imageFile);
+        imageUrl = await getDownloadURL(imageRef);
+      }
+
+      await addDoc(newslettersCollectionRef, { ...formData, imageUrl });
+      setFormData({ title: '', description: '', imageUrl: '' });
+      setImageFile(null);
+      setHasMore(true);
+      fetchNewsletters();
+      showModal('Success', 'Newsletter added successfully!');
+    } catch (error) {
+      console.error('Error adding newsletter:', error);
+      showModal('Error', 'Failed to add the newsletter.');
     }
-
-    await addDoc(newslettersCollectionRef, { ...formData, imageUrl });
-    setFormData({ title: '', description: '', imageUrl: '' });
-    setImageFile(null);
-    setHasMore(true); // Allow loading more data after adding
-    fetchNewsletters(); // Refetch to get the updated list without clearing the previous data
   };
 
   const handleUpdateNewsletter = async (id: string) => {
-    const newsletterDoc = doc(db, 'newsletters', id);
-    let imageUrl = formData.imageUrl;
+    try {
+      const newsletterDoc = doc(db, 'newsletters', id);
+      let imageUrl = formData.imageUrl;
 
-    if (imageFile) {
-      const imageRef = ref(storage, `images/${Date.now()}_${imageFile.name}`); // Unique file name
-      await uploadBytes(imageRef, imageFile);
-      imageUrl = await getDownloadURL(imageRef);
+      if (imageFile) {
+        const imageRef = ref(storage, `images/${Date.now()}_${imageFile.name}`);
+        await uploadBytes(imageRef, imageFile);
+        imageUrl = await getDownloadURL(imageRef);
+      }
+
+      await updateDoc(newsletterDoc, { ...formData, imageUrl });
+      setEditing(null);
+      setImageFile(null);
+      fetchNewsletters();
+      showModal('Success', 'Newsletter updated successfully!');
+    } catch (error) {
+      console.error('Error updating newsletter:', error);
+      showModal('Error', 'Failed to update the newsletter.');
     }
-
-    await updateDoc(newsletterDoc, { ...formData, imageUrl });
-    setEditing(null);
-    setImageFile(null);
-    fetchNewsletters(); // Refetch updated list
   };
 
   const handleDeleteNewsletter = async (id: string) => {
-    const newsletterDoc = doc(db, 'newsletters', id);
-    await deleteDoc(newsletterDoc);
-    setHasMore(true); // Allow loading more data after deletion
-    fetchNewsletters(); // Refetch after deletion
+    try {
+      const newsletterDoc = doc(db, 'newsletters', id);
+      await deleteDoc(newsletterDoc);
+      setHasMore(true);
+      fetchNewsletters();
+      showModal('Success', 'Newsletter deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting newsletter:', error);
+      showModal('Error', 'Failed to delete the newsletter.');
+    }
   };
 
   const handleEdit = (newsletter: Newsletter) => {
@@ -124,7 +144,7 @@ const AdminNewsletter: React.FC = () => {
 
   const handleLoadMore = () => {
     if (!loading && hasMore) {
-      fetchNewsletters(); // Fetch more data on load more click
+      fetchNewsletters();
     }
   };
 
@@ -135,7 +155,6 @@ const AdminNewsletter: React.FC = () => {
         <h2 className="text-xl font-semibold mb-4">{editing ? 'Edit Newsletter' : 'Add New Newsletter'}</h2>
         <form onSubmit={(e) => {
           e.preventDefault();
-          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           editing ? handleUpdateNewsletter(editing) : handleAddNewsletter();
         }}>
           <input type="text" name="title" placeholder="Title" value={formData.title} onChange={handleChange} className="block w-full mb-2 p-2 border border-gray-300 rounded" />

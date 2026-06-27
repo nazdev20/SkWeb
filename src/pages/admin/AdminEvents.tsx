@@ -3,6 +3,7 @@ import { db, collection, addDoc, deleteDoc, updateDoc, doc, getDocs, getDoc } fr
 import { query, limit, startAfter, DocumentSnapshot } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Event } from '../../data/data';
+import { useModal } from '../../context/ModalContext'; // Import the useModal hook
 
 const AdminEvents: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -24,6 +25,7 @@ const AdminEvents: React.FC = () => {
 
   const storage = getStorage();
   const EVENTS_LIMIT = 5;
+  const { showModal } = useModal(); // Initialize the modal hook
 
   useEffect(() => {
     fetchEvents();
@@ -37,9 +39,10 @@ const AdminEvents: React.FC = () => {
       const eventList = eventSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Event));
       
       setEvents(eventList);
-      setLastVisible(eventSnapshot.docs[eventSnapshot.docs.length - 1]); // Store last visible document for pagination
+      setLastVisible(eventSnapshot.docs[eventSnapshot.docs.length - 1]);
     } catch (error) {
       console.error('Error fetching events:', error);
+      showModal('Error', 'There was a problem fetching events.');
     } finally {
       setIsLoading(false);
     }
@@ -59,9 +62,10 @@ const AdminEvents: React.FC = () => {
       const moreEvents = eventSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Event));
 
       setEvents(prevEvents => [...prevEvents, ...moreEvents]);
-      setLastVisible(eventSnapshot.docs[eventSnapshot.docs.length - 1]); // Update last visible document
+      setLastVisible(eventSnapshot.docs[eventSnapshot.docs.length - 1]);
     } catch (error) {
       console.error('Error fetching more events:', error);
+      showModal('Error', 'Could not load more events.');
     } finally {
       setIsLoading(false);
     }
@@ -73,7 +77,7 @@ const AdminEvents: React.FC = () => {
       const selectedFile = files[0];
 
       if (selectedFile.size > 1048576) {
-        alert('File size exceeds 1 MB. Please upload a smaller file.');
+        showModal('File Too Large', 'File size exceeds 1 MB. Please upload a smaller file.');
         return;
       }
 
@@ -114,6 +118,7 @@ const AdminEvents: React.FC = () => {
       return urls;
     } catch (error) {
       console.error('Error uploading images:', error);
+      showModal('Upload Error', 'There was a problem uploading your images.');
       return [];
     }
   };
@@ -142,8 +147,10 @@ const AdminEvents: React.FC = () => {
       setImageFiles([]);
       setImageInputs([0]);
       fetchEvents();
+      showModal('Success', 'Event added successfully!');
     } catch (error) {
       console.error('Error adding document:', error);
+      showModal('Error', 'Failed to add the event.');
     }
   };
 
@@ -152,8 +159,10 @@ const AdminEvents: React.FC = () => {
       const eventDoc = doc(db, 'events', id);
       await deleteDoc(eventDoc);
       fetchEvents();
+      showModal('Success', 'Event deleted successfully!');
     } catch (error) {
       console.error('Error deleting document:', error);
+      showModal('Error', 'Failed to delete the event.');
     }
   };
 
@@ -165,13 +174,14 @@ const AdminEvents: React.FC = () => {
       setImageInputs(eventToEdit.image && Array.isArray(eventToEdit.image) ? eventToEdit.image.map((_, i) => i) : [0]);
     } else {
       console.error('Event not found for ID:', id);
+      showModal('Error', 'Could not find the event to edit.');
     }
   };
 
   const saveEvent = async () => {
     try {
       if (!newEvent.id) {
-        console.error('No event ID specified for update.');
+        showModal('Error', 'No event selected for updating.');
         return;
       }
 
@@ -179,7 +189,7 @@ const AdminEvents: React.FC = () => {
       const docSnapshot = await getDoc(eventDoc);
 
       if (!docSnapshot.exists()) {
-        console.error('No such document!');
+        showModal('Error', 'The event you are trying to edit does not exist.');
         return;
       }
 
@@ -206,8 +216,10 @@ const AdminEvents: React.FC = () => {
       setImageFiles([]);
       setImageInputs([0]);
       fetchEvents();
+      showModal('Success', 'Event updated successfully!');
     } catch (error) {
       console.error('Error updating document:', error);
+      showModal('Error', 'Failed to update the event.');
     }
   };
 
@@ -217,7 +229,7 @@ const AdminEvents: React.FC = () => {
       setSelectedEvent(event);
       setShowAttendanceForm(true);
     } else {
-      alert('Attendance form is only available on the event date.');
+      showModal('Attendance Unavailable', 'Attendance can only be marked on the day of the event.');
     }
   };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, deleteDoc, doc, addDoc } from 'firebase/firestore';
-import { db } from '../../../config/firebaseconfig'; // Adjust the path to your Firebase config
+import { db } from '../../../config/firebaseconfig';
+import { useModal } from '../../../context/ModalContext';
 
 interface AttendanceRecord {
   id: string;
@@ -15,8 +16,7 @@ interface AttendanceRecord {
 const AdminAttendancePage: React.FC = () => {
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [raffleWinner, setRaffleWinner] = useState<string | null>(null);
-  const [showMessageBox, setShowMessageBox] = useState<boolean>(false);
+  const { showModal } = useModal();
 
   useEffect(() => {
     const fetchAttendanceRecords = async () => {
@@ -29,17 +29,19 @@ const AdminAttendancePage: React.FC = () => {
         setAttendanceRecords(records);
       } catch (error) {
         console.error('Error fetching attendance records:', error);
+        showModal('Error', 'Failed to fetch attendance records.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchAttendanceRecords();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRaffle = async () => {
     if (attendanceRecords.length === 0) {
-      alert('No records available for the raffle.');
+      showModal('Raffle Error', 'No records available for the raffle.');
       return;
     }
 
@@ -47,28 +49,20 @@ const AdminAttendancePage: React.FC = () => {
     const winner = attendanceRecords[randomIndex];
 
     try {
-     
       await addDoc(collection(db, 'raffleWinners'), {
         fullName: winner.fullName,
         eventName: winner.eventName,
         timestamp: new Date().toISOString(),
       });
 
-     
       await deleteDoc(doc(db, 'attendance', winner.id));
 
-     
       setAttendanceRecords(prevRecords => prevRecords.filter(record => record.id !== winner.id));
-      setRaffleWinner(winner.fullName);
-      setShowMessageBox(true);
+      showModal('🎉 Raffle Winner! 🎉', `Congratulations to ${winner.fullName}!`);
     } catch (error) {
       console.error('Error during the raffle process:', error);
-      alert('Failed to complete the raffle process.');
+      showModal('Raffle Error', 'Failed to complete the raffle process.');
     }
-  };
-
-  const handleCloseMessageBox = () => {
-    setShowMessageBox(false);
   };
 
   if (loading) {
@@ -117,21 +111,6 @@ const AdminAttendancePage: React.FC = () => {
           Raffle a Winner
         </button>
       </div>
-
-      {showMessageBox && raffleWinner && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <h3 className="text-xl font-bold mb-4">🎉 Raffle Winner 🎉</h3>
-            <p className="text-lg">Congratulations to <h1 className='font-bold text-5xl'> {raffleWinner } !🎉</h1></p>
-            <button
-              onClick={handleCloseMessageBox}
-              className="mt-4 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition duration-300"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
