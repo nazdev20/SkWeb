@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { db, storage } from '../../config/firebaseconfig';
-import { collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, DocumentData } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Service, FormField } from '../../data/data';
 import { useModal } from '../../context/ModalContext';
+import { normalizeService } from '../../data/firestoreData';
 
 const AdminServices: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
@@ -23,7 +24,7 @@ const AdminServices: React.FC = () => {
 
   useEffect(() => {
     const unsubscribe = onSnapshot(servicesCollectionRef, (snapshot) => {
-      setServices(snapshot.docs.map((doc: DocumentData) => ({ ...doc.data(), id: doc.id } as Service)));
+      setServices(snapshot.docs.map(normalizeService));
     }, (error) => {
       console.error('Error fetching services:', error);
       showModal('Error', 'Failed to fetch services.');

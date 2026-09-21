@@ -86,10 +86,10 @@ const ServiceResult = () => {
   const handleQualify = async (applicationId: string) => {
     try {
       const applicationRef = doc(db, 'applications', applicationId);
-      await updateDoc(applicationRef, { qualified: true });
+      await updateDoc(applicationRef, { status: 'qualified', qualified: true });
       setApplications((prevApps) =>
         prevApps.map((app) =>
-          app.id === applicationId ? { ...app, data: { ...app.data, qualified: true } } : app
+          app.id === applicationId ? { ...app, data: { ...app.data, status: 'qualified', qualified: true } } : app
         )
       );
       showModal('Success', 'Application marked as qualified.');
@@ -119,14 +119,14 @@ const ServiceResult = () => {
           {applications.map((application, index) => {
             const serviceId = application.data.serviceId as string;
             const serviceTitle = services[serviceId] || 'Unknown Service';
-            const isQualified = application.data.qualified as boolean || false;
+            const isQualified = application.data.status === 'qualified' || application.data.qualified === true;
 
             return (
               <div key={application.id} className={`bg-white shadow-md rounded-lg p-6 ${index < 4 ? 'w-full' : ''}`}>
                 <h2 className="text-xl font-semibold mb-4">Service Title: {serviceTitle}</h2>
                 <div className="space-y-4">
                   {Object.entries(application.data)
-                    .filter(([key]) => key !== 'qualified')
+                    .filter(([key]) => key !== 'qualified' && key !== 'status' && key !== 'createdAt')
                     .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
                     .map(([key, value], index) => (
                       <div key={index} className="mb-4">

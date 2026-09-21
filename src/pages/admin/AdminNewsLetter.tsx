@@ -3,6 +3,7 @@ import { db, storage } from '../../config/firebaseconfig';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, DocumentData, QuerySnapshot, query, orderBy, limit, startAfter } from 'firebase/firestore';
 import { uploadBytes, ref, getDownloadURL } from 'firebase/storage';
 import { useModal } from '../../context/ModalContext';
+import { normalizeNewsletter } from '../../data/firestoreData';
 
 interface Newsletter {
   id: string;
@@ -41,10 +42,7 @@ const AdminNewsletter: React.FC = () => {
       if (data.empty) {
         setHasMore(false);
       } else {
-        const fetchedNewsletters = data.docs.map(doc => ({
-          ...doc.data(),
-          id: doc.id,
-        } as Newsletter));
+        const fetchedNewsletters = data.docs.map(normalizeNewsletter);
 
         setNewsletters(prev => [
           ...prev,

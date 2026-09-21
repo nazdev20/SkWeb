@@ -10,7 +10,8 @@ interface AttendanceRecord {
   fullName: string;
   age: string;
   address: string;
-  timestamp: string;
+  createdAt?: { toDate?: () => Date };
+  timestamp?: string;
 }
 
 const AdminAttendancePage: React.FC = () => {
@@ -65,6 +66,14 @@ const AdminAttendancePage: React.FC = () => {
     }
   };
 
+  const formatTimestamp = (record: AttendanceRecord) => {
+    if (record.createdAt?.toDate) {
+      return record.createdAt.toDate().toLocaleString();
+    }
+
+    return record.timestamp ? new Date(record.timestamp).toLocaleString() : 'Not available';
+  };
+
   if (loading) {
     return <p>Loading attendance records...</p>;
   }
@@ -93,7 +102,7 @@ const AdminAttendancePage: React.FC = () => {
                   <td className="py-2 px-4 border-b">{record.fullName}</td>
                   <td className="py-2 px-4 border-b">{record.age}</td>
                   <td className="py-2 px-4 border-b">{record.address}</td>
-                  <td className="py-2 px-4 border-b">{new Date(record.timestamp).toLocaleString()}</td>
+                  <td className="py-2 px-4 border-b">{formatTimestamp(record)}</td>
                 </tr>
               ))}
             </tbody>

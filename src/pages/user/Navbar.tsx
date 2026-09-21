@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { navItems as defaultNavItems } from '../../data/data'; 
 import logo from "../../assets/Hero section/LOGO_SK-removebg-preview.png";
 import { SignUp } from '../../components/ui/buttons';
-import { FaUserShield } from 'react-icons/fa';
+import { FaCalendarAlt, FaHandsHelping, FaHome, FaInfoCircle, FaNewspaper, FaUserShield } from 'react-icons/fa';
 
 interface NavItem {
   name: string;
@@ -11,11 +11,7 @@ interface NavItem {
 }
 
 const Navbar = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
 
   const navigate = useNavigate();
@@ -26,34 +22,13 @@ const Navbar = () => {
     setIsAdminLoggedIn(adminStatus === 'true');
   }, []);
 
-  const handleSidebarToggle = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      const offset = 75; // Adjusted offset for fixed navbar
+      const offset = window.innerWidth >= 768 ? 75 : 0;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
       window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-    }
-    if (isSidebarOpen) {
-      handleSidebarToggle();
-    }
-  };
-
-  const handleAdminLogin = () => {
-    const adminEmail = process.env.REACT_APP_ADMIN_EMAIL || 'defaultEmail';
-    const adminPassword = process.env.REACT_APP_ADMIN_PASSWORD || 'defaultPassword';
-
-    if (email === adminEmail && password === adminPassword) {
-      setError('');
-      setIsAdminModalOpen(false);
-      setIsAdminLoggedIn(true);
-      localStorage.setItem('isAdminLoggedIn', 'true');
-    } else {
-      setError('Invalid email or password');
     }
   };
 
@@ -78,10 +53,15 @@ const Navbar = () => {
         scrollToSection(item.id);
       }
     }
-    if (isSidebarOpen) {
-      handleSidebarToggle(); // Close sidebar on nav item click
-    }
   };
+
+  const mobileNavItems = [
+    { name: 'Home', id: 'home', icon: FaHome },
+    { name: 'About', id: 'AboutUs', icon: FaInfoCircle },
+    { name: 'Services', id: 'service', icon: FaHandsHelping },
+    { name: 'News', id: 'newsletter', icon: FaNewspaper },
+    { name: 'Events', id: 'events', icon: FaCalendarAlt },
+  ];
 
   return (
     <>
@@ -90,33 +70,10 @@ const Navbar = () => {
         {/* ... modal content ... */}
       </div>
 
-      {/* Sidebar */}
-      <div className={`fixed inset-0 bg-black bg-opacity-50 z-40 transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-300 ease-in-out md:hidden`}>
-        <div className="w-64 h-full bg-gradient-to-r from-[#e3f9ff] to-[#b5e8ff] p-4 relative flex flex-col">
-          <button className="text-black font-bold text-2xl self-end" onClick={handleSidebarToggle}>
-            &times;
-          </button>
-          <ul className="mt-12 flex flex-col space-y-4">
-            {navItems.map((item, index) => (
-              <li
-                key={index}
-                className="text-black font-bold cursor-pointer font-serif hover:bg-gradient-to-r hover:from-orange-400 hover:to-blue-900 hover:text-transparent hover:bg-clip-text transition duration-300 ease-in-out"
-                onClick={() => handleNavItemClick(item)}
-              >
-                {item.name}
-              </li>
-            ))}
-          </ul>
-          <div className="mt-8">
-            <SignUp transparent />
-          </div>
-        </div>
-      </div>
-
       {/* Navbar */}
-      <nav className="bg-white p-4 fixed w-full z-30 flex items-center justify-between h-[75px]">
+      <nav className="bg-white fixed top-auto bottom-0 md:top-0 md:bottom-auto w-full z-30 flex items-center justify-between h-[68px] md:h-[75px] px-3 md:p-4 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] md:shadow-md">
         {/* Left side */}
-        <div className="flex items-center">
+        <div className="hidden md:flex items-center">
             <img
                 src={logo}
                 alt="Logo"
@@ -126,7 +83,7 @@ const Navbar = () => {
         </div>
 
         {/* Right side */}
-        <div className="flex items-center">
+        <div className="flex w-full items-center md:w-auto">
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center space-x-4">
                 <ul className="flex items-center space-x-4 md:space-x-8">
@@ -161,22 +118,27 @@ const Navbar = () => {
                 </div>
             </div>
 
-            {/* Mobile Nav Toggle */}
-            <div className="md:hidden">
+            {/* Mobile Bottom Nav */}
+            <div className="flex md:hidden w-full items-center justify-around gap-1">
+              {mobileNavItems.map(({ name, id, icon: Icon }) => (
                 <button
-                    className="text-black font-bold text-2xl"
-                    aria-label="Open Sidebar"
-                    onClick={handleSidebarToggle}
+                  key={id}
+                  type="button"
+                  className="flex min-w-0 flex-1 flex-col items-center gap-1 py-1 text-[10px] font-semibold text-gray-600 transition-colors hover:text-blue-700"
+                  aria-label={name}
+                  onClick={() => handleNavItemClick({ name, id })}
                 >
-                    ☰
+                  <Icon className="text-base" aria-hidden="true" />
+                  <span className="truncate">{name}</span>
                 </button>
+              ))}
             </div>
         </div>
     </nav>
 
 
       {/* Add padding to the top of the main content to avoid overlap with the fixed navbar */}
-      <div className="pt-[75px]">
+      <div className="hidden md:block md:h-[75px]">
         {/* The rest of your app content will go here */}
       </div>
     </>

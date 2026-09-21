@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { db, storage } from "../../../config/firebaseconfig";
-import { collection, getDocs, addDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import ServiceForms from '../forms/Services-forms';
 import { Service, FormData } from '../../../data/data';
 import ServiceItemsModal from '../../../modals/ServiceItemsmodal';
+import { normalizeService } from '../../../data/firestoreData';
 
 const ServiceItems: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
@@ -21,7 +22,7 @@ const ServiceItems: React.FC = () => {
     try {
       setLoading(true);
       const data = await getDocs(servicesCollectionRef);
-      const servicesData = data.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Service);
+      const servicesData = data.docs.map(normalizeService);
       //console.log('Fetched services:', servicesData);
       setServices(servicesData);
       setDataFetched(true);
@@ -47,7 +48,12 @@ const ServiceItems: React.FC = () => {
 
   const handleApply = async (serviceId: string) => {
     try {
-      let applicationData: { serviceId: string; fileURL?: string } = { serviceId, ...formData[serviceId] };
+      let applicationData: Record<string, unknown> = {
+        serviceId,
+        ...formData[serviceId],
+        status: 'pending',
+        createdAt: serverTimestamp(),
+      };
 
       if (fileUploads[serviceId]) {
         const fileRef = ref(storage, `applications/${serviceId}/${fileUploads[serviceId]!.name}`);

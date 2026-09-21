@@ -4,6 +4,7 @@ import { query, limit, startAfter, DocumentSnapshot } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Event } from '../../data/data';
 import { useModal } from '../../context/ModalContext'; // Import the useModal hook
+import { normalizeEvent } from '../../data/firestoreData';
 
 const AdminEvents: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -36,7 +37,7 @@ const AdminEvents: React.FC = () => {
       setIsLoading(true);
       const eventsQuery = query(collection(db, 'events'), limit(EVENTS_LIMIT));
       const eventSnapshot = await getDocs(eventsQuery);
-      const eventList = eventSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Event));
+      const eventList = eventSnapshot.docs.map(normalizeEvent);
       
       setEvents(eventList);
       setLastVisible(eventSnapshot.docs[eventSnapshot.docs.length - 1]);
@@ -59,7 +60,7 @@ const AdminEvents: React.FC = () => {
         limit(EVENTS_LIMIT)
       );
       const eventSnapshot = await getDocs(eventsQuery);
-      const moreEvents = eventSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Event));
+      const moreEvents = eventSnapshot.docs.map(normalizeEvent);
 
       setEvents(prevEvents => [...prevEvents, ...moreEvents]);
       setLastVisible(eventSnapshot.docs[eventSnapshot.docs.length - 1]);
@@ -170,7 +171,7 @@ const AdminEvents: React.FC = () => {
     const eventToEdit = events.find(event => event.id === id);
     if (eventToEdit) {
       setNewEvent(eventToEdit);
-      setImageFiles(Array.isArray(eventToEdit.image) ? eventToEdit.image.map(img => img as unknown as File) : []);
+      setImageFiles([]);
       setImageInputs(eventToEdit.image && Array.isArray(eventToEdit.image) ? eventToEdit.image.map((_, i) => i) : [0]);
     } else {
       console.error('Event not found for ID:', id);

@@ -60,7 +60,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ closeChat }) => {
 
   return (
     <div
-      className="fixed bottom-16 right-4 w-80 bg-white border border-gray-300 rounded-lg shadow-lg p-4"
+      className="fixed bottom-[84px] right-4 w-80 bg-white border border-gray-300 rounded-lg shadow-lg p-4 md:bottom-16"
       style={{ zIndex: 1000 }} // Ensure the chat window is on top of other elements
     >
       <div className="flex justify-between items-center border-b border-gray-300 pb-2 mb-2">

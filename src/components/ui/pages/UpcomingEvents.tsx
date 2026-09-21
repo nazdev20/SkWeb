@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Event } from '../../../data/data';
 import EventModal from '../../../modals/EventModal';
 import { db, collection, getDocs } from '../../../config/firebaseconfig';
+import { normalizeEvent } from '../../../data/firestoreData';
 
 const UpcomingEvents: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -11,7 +12,7 @@ const UpcomingEvents: React.FC = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const eventList = (await getDocs(collection(db, 'events'))).docs.map(doc => ({ id: doc.id, ...doc.data() } as Event));
+        const eventList = (await getDocs(collection(db, 'events'))).docs.map(normalizeEvent);
         setEvents(eventList);
       } catch (error) {
         console.error('Error fetching events:', error);

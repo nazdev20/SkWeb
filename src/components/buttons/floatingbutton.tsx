@@ -13,7 +13,7 @@ const FloatingChatButton: React.FC = () => {
     <div>
       <button
         onClick={toggleChat}
-        className="fixed bottom-4 right-4 bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-transform transform hover:scale-105"
+        className="fixed bottom-[84px] right-4 z-40 bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-transform transform hover:scale-105 md:bottom-4"
       >
         💬
       </button>

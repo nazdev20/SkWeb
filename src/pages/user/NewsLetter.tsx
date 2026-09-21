@@ -1,40 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../../config/firebaseconfig';
-import { collection, getDocs, DocumentData, QuerySnapshot } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import NewsletterItems from '../../components/ui/pages/NewsletterItems';
-
-interface Newsletter {
-  id: string;
-  title: string;
-  description: string;
-  imageUrl: string;
-  fullContent: string; // Ensure fullContent is included
-}
+import type { Newsletter as NewsletterData } from '../../data/data';
+import { normalizeNewsletter } from '../../data/firestoreData';
 
 const Newsletter: React.FC = () => {
-  const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
-  const [dataFetched, setDataFetched] = useState<boolean>(false); // New state to track if data was fetched
+  const [newsletters, setNewsletters] = useState<NewsletterData[]>([]);
 
   const newslettersCollectionRef = collection(db, 'newsletters');
 
   useEffect(() => {
     const fetchNewsletters = async () => {
       try {
-        // Check if data has already been fetched
-        if (dataFetched) return;
-
-        const data: QuerySnapshot<DocumentData> = await getDocs(newslettersCollectionRef);
-        setNewsletters(
-          data.docs.map((doc) => ({ ...doc.data(), id: doc.id } as Newsletter))
-        );
-        setDataFetched(true); // Set dataFetched to true once data is fetched
+        const data = await getDocs(newslettersCollectionRef);
+        setNewsletters(data.docs.map(normalizeNewsletter));
       } catch (error) {
         console.error('Error fetching newsletters:', error);
       }
     };
 
     fetchNewsletters();
-  }, [dataFetched, newslettersCollectionRef]);
+  }, []);
 
   return (
     <div className="p-4 md:p-8 min-h-screen bg-gray-100">
