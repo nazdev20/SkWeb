@@ -37,7 +37,7 @@ const AdminServices: React.FC = () => {
   const uploadImage = async (image: File | null): Promise<string | undefined> => {
     if (!image) return;
     try {
-      const imageRef = ref(storage, `services/${image.name}`);
+      const imageRef = ref(storage, `services/${crypto.randomUUID()}-${image.name}`);
       await uploadBytes(imageRef, image);
       const imageUrl = await getDownloadURL(imageRef);
       return imageUrl;
@@ -133,47 +133,47 @@ const AdminServices: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-screen mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center">Admin Services Management</h1>
+    <div className="mx-auto max-w-full overflow-x-hidden p-3 sm:p-6">
+      <h1 className="mb-6 text-center text-2xl font-bold sm:text-3xl">Admin Services Management</h1>
 
       {/* Service Form */}
-      <div className="bg-white p-6 rounded-lg shadow-md mb-8 max-w-[100%] mx-auto">
-        <h2 className="text-2xl font-bold mb-4">{editMode ? 'Edit Service' : 'Add New Service'}</h2>
+      <div className="mx-auto mb-8 max-w-full rounded-lg bg-white p-4 shadow-md sm:p-6">
+        <h2 className="mb-4 text-xl font-bold sm:text-2xl">{editMode ? 'Edit Service' : 'Add New Service'}</h2>
         <input
           type="text"
           placeholder="Service Title"
           value={newService.title}
           onChange={(e) => setNewService({ ...newService, title: e.target.value })}
-          className="block w-full mb-4 p-2 border border-gray-300 rounded"
+          className="mb-4 block w-full rounded border border-gray-300 p-2"
         />
         <textarea
           placeholder="Service Description"
           value={newService.description}
           onChange={(e) => setNewService({ ...newService, description: e.target.value })}
-          className="block w-full mb-4 p-2 border border-gray-300 rounded"
+          className="mb-4 block w-full rounded border border-gray-300 p-2"
         />
         <input
           type="file"
           onChange={(e) => setImageUpload(e.target.files ? e.target.files[0] : null)}
-          className="block w-full mb-4"
+          className="mb-4 block w-full"
         />
 
         {/* Form Fields */}
         <div>
-          <h3 className="text-lg font-bold mb-2">Custom Form Fields</h3>
+          <h3 className="mb-2 text-lg font-bold">Custom Form Fields</h3>
           {formFields.map((field, index) => (
-            <div key={index} className="flex items-center mb-2">
+            <div key={index} className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center">
               <input
                 type="text"
                 placeholder="Field Label"
                 value={field.label}
                 onChange={(e) => updateFormField(index, 'label', e.target.value)}
-                className="block w-full p-2 border border-gray-300 rounded mr-2"
+                className="block w-full rounded border border-gray-300 p-2"
               />
               <select
                 value={field.type}
                 onChange={(e) => updateFormField(index, 'type', e.target.value)}
-                className="p-2 border border-gray-300 rounded"
+                className="rounded border border-gray-300 p-2"
               >
                 <option value="text">Text</option>
                 <option value="email">Email</option>
@@ -182,7 +182,7 @@ const AdminServices: React.FC = () => {
               </select>
               <button
                 onClick={() => removeFormField(index)}
-                className="ml-2 bg-red-500 text-white p-2 rounded"
+                className="rounded bg-red-500 p-2 text-white"
               >
                 Remove
               </button>
@@ -190,7 +190,7 @@ const AdminServices: React.FC = () => {
           ))}
           <button
             onClick={addFormField}
-            className="bg-blue-500 text-white p-2 rounded"
+            className="rounded bg-blue-500 p-2 text-white"
           >
             Add Field
           </button>
@@ -198,32 +198,34 @@ const AdminServices: React.FC = () => {
 
         <button
           onClick={addOrUpdateService}
-          className="mt-4 bg-green-500 text-white p-2 rounded"
+          className="mt-4 rounded bg-green-500 p-2 text-white"
         >
           {editMode ? 'Update Service' : 'Add Service'}
         </button>
       </div>
 
       {/* Services List */}
-      <div className="bg-white p-6 rounded-lg shadow-md max-w-[100%] mx-auto">
-        <h2 className="text-2xl font-bold mb-4">Existing Services</h2>
+      <div className="mx-auto max-w-full rounded-lg bg-white p-4 shadow-md sm:p-6">
+        <h2 className="mb-4 text-xl font-bold sm:text-2xl">Existing Services</h2>
         {services.map((service) => (
           <div key={service.id} className="border-b border-gray-200 py-4">
-            <h3 className="text-xl font-semibold">{service.title}</h3>
-            <p>{service.description}</p>
-            {service.imageUrl && <img src={service.imageUrl} alt={service.title} className="w-32 h-32 object-cover my-2" />}
-            <button
-              onClick={() => editService(service)}
-              className="mr-2 bg-yellow-500 text-white p-2 rounded"
-            >
-              Edit
-            </button>
-            <button
-              onClick={() => deleteService(service.id)}
-              className="bg-red-500 text-white p-2 rounded"
-            >
-              Delete
-            </button>
+            <h3 className="text-lg font-semibold sm:text-xl">{service.title}</h3>
+            <p className="break-words">{service.description}</p>
+            {service.imageUrl && <img src={service.imageUrl} alt={service.title} className="my-2 h-32 w-32 object-cover" />}
+            <div className="mt-2 flex flex-wrap gap-2">
+              <button
+                onClick={() => editService(service)}
+                className="rounded bg-yellow-500 p-2 text-white"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => deleteService(service.id)}
+                className="rounded bg-red-500 p-2 text-white"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>

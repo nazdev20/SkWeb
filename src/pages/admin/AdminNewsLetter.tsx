@@ -28,6 +28,13 @@ const AdminNewsletter: React.FC = () => {
 
   const newslettersCollectionRef = collection(db, 'newsletters');
 
+  const refreshNewsletters = () => {
+    setNewsletters([]);
+    setLastVisible(null);
+    setHasMore(true);
+    fetchNewsletters();
+  };
+
   const fetchNewsletters = async () => {
     if (loading || !hasMore) return;
 
@@ -75,7 +82,7 @@ const AdminNewsletter: React.FC = () => {
       setFormData({ title: '', description: '', imageUrl: '' });
       setImageFile(null);
       setHasMore(true);
-      fetchNewsletters();
+      refreshNewsletters();
       showModal('Success', 'Newsletter added successfully!');
     } catch (error) {
       console.error('Error adding newsletter:', error);
@@ -97,7 +104,7 @@ const AdminNewsletter: React.FC = () => {
       await updateDoc(newsletterDoc, { ...formData, imageUrl });
       setEditing(null);
       setImageFile(null);
-      fetchNewsletters();
+      refreshNewsletters();
       showModal('Success', 'Newsletter updated successfully!');
     } catch (error) {
       console.error('Error updating newsletter:', error);
@@ -110,7 +117,7 @@ const AdminNewsletter: React.FC = () => {
       const newsletterDoc = doc(db, 'newsletters', id);
       await deleteDoc(newsletterDoc);
       setHasMore(true);
-      fetchNewsletters();
+      refreshNewsletters();
       showModal('Success', 'Newsletter deleted successfully!');
     } catch (error) {
       console.error('Error deleting newsletter:', error);
@@ -120,6 +127,7 @@ const AdminNewsletter: React.FC = () => {
 
   const handleEdit = (newsletter: Newsletter) => {
     setEditing(newsletter.id);
+    setImageFile(null);
     setFormData({
       title: newsletter.title,
       description: newsletter.description,

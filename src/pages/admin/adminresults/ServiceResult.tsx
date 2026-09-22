@@ -15,7 +15,6 @@ interface Application {
 const ServiceResult = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [services, setServices] = useState<Record<string, string>>({});
-  const [, setUserInput] = useState<{ [id: string]: ApplicationData }>({});
   const [servicesLoaded, setServicesLoaded] = useState(false);
   const { showModal } = useModal();
 
@@ -51,17 +50,11 @@ const ServiceResult = () => {
       const filteredAppsData: Application[] = [];
       querySnapshot.forEach(async (doc) => {
         const appData = doc.data() as ApplicationData;
-        const serviceId = appData.serviceId as string;
-        const serviceTitle = services[serviceId] || 'Unknown Service';
 
-        if (serviceTitle === 'Unknown Service') {
-          await deleteDoc(doc.ref);
-        } else {
-          filteredAppsData.push({
-            id: doc.id,
-            data: appData,
-          });
-        }
+        filteredAppsData.push({
+          id: doc.id,
+          data: appData,
+        });
       });
 
       setApplications(filteredAppsData);
@@ -72,16 +65,6 @@ const ServiceResult = () => {
 
     return () => unsubscribeApplications();
   }, [servicesLoaded, services, showModal]);
-
-  const handleInputChange = (serviceId: string, key: string, value: string | number | boolean) => {
-    setUserInput((prevInput) => ({
-      ...prevInput,
-      [serviceId]: {
-        ...prevInput[serviceId],
-        [key]: value,
-      },
-    }));
-  };
 
   const handleQualify = async (applicationId: string) => {
     try {
@@ -132,7 +115,7 @@ const ServiceResult = () => {
                       <div key={index} className="mb-4">
                         <label className="block font-medium text-gray-600">{key}</label>
                         <div className="mt-1 text-gray-800">
-                          {renderFieldContent(key, value, serviceId, handleInputChange)}
+                          {renderFieldContent(value)}
                         </div>
                       </div>
                     ))}
@@ -170,47 +153,23 @@ const ServiceResult = () => {
   );
 };
 
-const renderFieldContent = (
-  key: string,
-  value: string | number | string[] | number[] | boolean,
-  serviceId: string,
-  handleInputChange: (serviceId: string, key: string, value: string | number | boolean) => void
-) => {
+const renderFieldContent = (value: string | number | string[] | number[] | boolean) => {
   if (typeof value === 'string') {
-    return (
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => handleInputChange(serviceId, key, e.target.value)}
-        className="border border-gray-300 rounded px-3 py-2"
-      />
-    );
+    return <p className="break-words text-gray-800">{value}</p>;
   } else if (typeof value === 'number') {
-    return (
-      <input
-        type="number"
-        value={value}
-        onChange={(e) => handleInputChange(serviceId, key, parseFloat(e.target.value))}
-        className="border border-gray-300 rounded px-3 py-2"
-      />
-    );
+    return <p className="text-gray-800">{value}</p>;
   } else if (Array.isArray(value)) {
     return (
       <ul className="list-disc list-inside">
         {value.map((item, index) => (
-          <li key={index}>
-            <input
-              type="text"
-              value={item}
-              onChange={(e) => handleInputChange(serviceId, key, e.target.value)}
-              className="border border-gray-300 rounded px-3 py-2"
-            />
-          </li>
+          <li key={index} className="break-words">{item}</li>
         ))}
       </ul>
     );
+  } else if (typeof value === 'boolean') {
+    return <p className="text-gray-800">{value ? 'Yes' : 'No'}</p>;
   } else {
-    return <span>Unsupported type</span>;
+    return <span>Not available</span>;
   }
 };
 

@@ -5,6 +5,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Event } from '../../data/data';
 import { useModal } from '../../context/ModalContext'; // Import the useModal hook
 import { normalizeEvent } from '../../data/firestoreData';
+import AttendanceFormModal from '../../modals/AttendanceEvent';
 
 const AdminEvents: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -50,10 +51,10 @@ const AdminEvents: React.FC = () => {
   };
 
   const fetchMoreEvents = async () => {
+    if (!lastVisible) return;
+
     try {
       setIsLoading(true);
-      if (!lastVisible) return;
-
       const eventsQuery = query(
         collection(db, 'events'),
         startAfter(lastVisible),
@@ -279,7 +280,7 @@ const AdminEvents: React.FC = () => {
             <option value="Sports">Sports</option>
             <option value="Art">Art</option>
             <option value="Party">Party</option>
-            <option value="Art">Gathering</option>
+            <option value="Gathering">Gathering</option>
           </select>
           
           {/* Image inputs */}
@@ -345,39 +346,39 @@ const AdminEvents: React.FC = () => {
           <ul className="space-y-4">
             {events.map((event) => (
               <li key={event.id} className="border-b border-gray-200 pb-4">
-                <div className="flex justify-between items-center">
-                  <div>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0 flex-1">
                     <h4 className="text-lg font-semibold">{event.title}</h4>
                     <p className="text-gray-600">{event.date}</p>
                     <p className="text-gray-600">{event.location}</p>
-                    <p className="text-gray-600">{event.description}</p>
-                    <div className="flex flex-wrap mt-2 space-x-2">
+                    <p className="text-gray-600 break-words">{event.description}</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
                       {event.image.map((img, i) => (
                         <img
                           key={i}
                           src={img}
                           alt={`Event ${i}`}
-                          className="w-24 h-24 object-cover rounded-lg"
+                          className="h-20 w-20 rounded-lg object-cover sm:h-24 sm:w-24"
                         />
                       ))}
                     </div>
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-wrap gap-2 sm:justify-end">
                     <button
                       onClick={() => editEvent(event.id)}
-                      className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
+                      className="px-3 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => deleteEvent(event.id)}
-                      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                      className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
                     >
                       Delete
                     </button>
                     <button
                       onClick={() => handleEventClick(event)}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                      className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                     >
                       Mark Attendance
                     </button>
@@ -399,18 +400,10 @@ const AdminEvents: React.FC = () => {
 
       {/* Attendance Form */}
       {showAttendanceForm && selectedEvent && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
-          <div className="bg-white p-4 rounded-lg shadow-lg w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Mark Attendance for {selectedEvent.title}</h3>
-            {/* Add your attendance form fields here */}
-            <button
-              onClick={() => setShowAttendanceForm(false)}
-              className="mt-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+        <AttendanceFormModal
+          eventName={selectedEvent.title}
+          onClose={() => setShowAttendanceForm(false)}
+        />
       )}
     </div>
   );

@@ -21,11 +21,11 @@ const HomeSection = () => {
   }, []);
 
   return (
-    <div className="min-h-screen pt-16 px-4 sm:px-8">
-      <div className="flex flex-col sm:flex-row items-center justify-between w-full max-w-[100%] gap-8 sm:gap-4">
+    <div className="min-h-screen w-full overflow-hidden pt-16 px-4 sm:px-8">
+      <div className="flex w-full max-w-full flex-col items-center justify-between gap-8 sm:flex-row sm:gap-4">
         
         {/* Text Section */}
-        <div className="flex flex-col items-start space-y-4 p-5 w-full sm:w-1/2">
+        <div className="flex w-full min-w-0 flex-col items-start space-y-4 p-5 sm:w-1/2">
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-black font-serif">
             Building a Brighter Future for Youth
           </h1>
@@ -40,11 +40,11 @@ const HomeSection = () => {
         </div>
 
         {/* Image Section */}
-        <div className="flex justify-center sm:ml-[-20px] w-full sm:w-1/2">
+        <div className="flex w-full min-w-0 justify-center sm:ml-0 sm:w-1/2">
           <img 
             src={Sk} 
             alt="Card" 
-            className="w-[80%] h-auto sm:w-[300px] sm:h-[300px] md:w-[400px] md:h-[400px] lg:w-[550px] lg:h-[550px] rounded-md shadow-md object-contain"
+            className="h-auto w-full max-w-full rounded-md object-contain shadow-md sm:h-[300px] sm:w-[300px] md:h-[400px] md:w-[400px] lg:h-[550px] lg:w-[550px]"
           />
         </div>
 

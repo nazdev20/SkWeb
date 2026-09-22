@@ -27,7 +27,7 @@ const Newsletter: React.FC = () => {
     <div className="p-4 md:p-8 min-h-screen bg-gray-100">
       <h1 className="text-2xl md:text-3xl font-bold mb-4">Stay Updated with Us</h1>
       <p className="text-base md:text-lg mb-8">Get the latest news and updates on youth and community initiatives.</p>
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-8">  {/* Increase gap */}
+      <div className="grid min-w-0 grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3">
         {newsletters.map((newsletter) => (
           <NewsletterItems key={newsletter.id} newsletter={newsletter} />
         ))}

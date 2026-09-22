@@ -2,7 +2,7 @@
    "homepage": "https://nazdev20.github.io/SkWeb",
   "name": "skproject",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite",

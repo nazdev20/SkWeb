@@ -99,7 +99,7 @@ const ServiceItems: React.FC = () => {
   };
 
   return (
-    <div className="p-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid min-w-0 grid-cols-1 gap-6 p-4 sm:grid-cols-2 lg:grid-cols-3">
       {loading ? (
         <p>Loading services...</p>
       ) : services.length === 0 ? (
@@ -108,7 +108,7 @@ const ServiceItems: React.FC = () => {
         services.map(service => (
           <div
             key={service.id}
-            className="flex flex-col items-center text-center border-2 border-gray-200 p-4 rounded-lg shadow-lg hover:scale-105 transition-transform duration-300 cursor-pointer"
+            className="flex min-w-0 cursor-pointer flex-col items-center rounded-lg border-2 border-gray-200 p-4 text-center shadow-lg transition-transform duration-300 hover:scale-105"
             onClick={() => openServiceItemsModal(service)}
           >
             <div
@@ -119,7 +119,7 @@ const ServiceItems: React.FC = () => {
                 backgroundPosition: 'center',
               }}
             />
-            <div className="mt-4">
+            <div className="mt-4 min-w-0 max-w-full">
               <h3 className="text-lg md:text-xl font-bold">{service.title}</h3>
               <p className="text-sm md:text-base mt-2">{service.description}</p>
             </div>

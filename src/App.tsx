@@ -14,6 +14,31 @@ import HomeSection from './components/ui/pages/HomeSection';
 import FAQPage from './pages/user/faq';
 import Footer from './pages/user/Footer';
 import { ModalProvider } from './context/ModalContext';
+import { useAuth } from './Auth/AuthContext';
+
+function AdminRoute() {
+  const { user, openAuthModal } = useAuth();
+
+  if (!user) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
+        <section className="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-lg">
+          <h1 className="text-2xl font-bold text-slate-900">Admin access required</h1>
+          <p className="mt-3 text-slate-600">Sign in with an authorized Firebase account to manage the site.</p>
+          <button
+            type="button"
+            onClick={openAuthModal}
+            className="mt-6 rounded-lg bg-slate-900 px-5 py-3 font-semibold text-white transition hover:bg-slate-700"
+          >
+            Sign in
+          </button>
+        </section>
+      </main>
+    );
+  }
+
+  return <Main />;
+}
 
 function UserPageLayout() {
   return (
@@ -46,7 +71,7 @@ function App() {
       <AuthProvider>
         <ModalProvider>
           <Routes>
-            <Route path="/admin" element={<Main />} />
+            <Route path="/admin" element={<AdminRoute />} />
             <Route path="*" element={<UserPageLayout />} />
           </Routes>
         </ModalProvider>

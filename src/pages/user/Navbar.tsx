@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { navItems as defaultNavItems } from '../../data/data'; 
 import logo from "../../assets/Hero section/LOGO_SK-removebg-preview.png";
 import { SignUp } from '../../components/ui/buttons';
+import { useAuth } from '../../Auth/AuthContext';
 import { FaCalendarAlt, FaHandsHelping, FaHome, FaInfoCircle, FaNewspaper, FaUserShield } from 'react-icons/fa';
 
 interface NavItem {
@@ -13,14 +14,14 @@ interface NavItem {
 const Navbar = () => {
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const { user, signOut, openAuthModal } = useAuth();
 
   const navigate = useNavigate();
   const location = useLocation(); 
 
   useEffect(() => {
-    const adminStatus = localStorage.getItem('isAdminLoggedIn');
-    setIsAdminLoggedIn(adminStatus === 'true');
-  }, []);
+    setIsAdminLoggedIn(Boolean(user));
+  }, [user]);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -32,9 +33,8 @@ const Navbar = () => {
     }
   };
 
-  const handleAdminLogout = () => {
-    setIsAdminLoggedIn(false);
-    localStorage.removeItem('isAdminLoggedIn');
+  const handleAdminLogout = async () => {
+    await signOut();
     navigate('/');
   };
 
@@ -65,10 +65,16 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Admin Login Modal */}
-      <div className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${isAdminModalOpen ? 'block' : 'hidden'}`}>
-        {/* ... modal content ... */}
-      </div>
+      {isAdminModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setIsAdminModalOpen(false)}>
+          <div className="rounded-xl bg-white p-6 shadow-xl" onClick={(event) => event.stopPropagation()}>
+            <p className="mb-4 text-slate-700">Use the sign-in form to access the admin area.</p>
+            <button type="button" onClick={() => { setIsAdminModalOpen(false); openAuthModal(); }} className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white">
+              Sign in
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Navbar */}
       <nav className="bg-white fixed top-auto bottom-0 md:top-0 md:bottom-auto w-full z-30 flex items-center justify-between h-[68px] md:h-[75px] px-3 md:p-4 shadow-[0_-2px_10px_rgba(0,0,0,0.08)] md:shadow-md">
