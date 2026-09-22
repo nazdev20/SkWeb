@@ -45,7 +45,7 @@ export interface Service {
 }
 export interface FormField {
     label: string;
-    type: 'text' | 'email' | 'date' | 'textarea' | 'file';
+    type: 'text' | 'email' | 'date' | 'number' | 'textarea' | 'file';
 }
 
 export interface FormData {
@@ -77,6 +77,6 @@ export interface FormSubmission {
     id: string;
     serviceId: string;
     formData: Record<string, string>;
-    status: 'Pending' | 'Qualified' | 'Not Qualified';
+    status: 'pending' | 'qualified' | 'rejected';
 }
 

@@ -10,7 +10,8 @@ interface AttendanceRecord {
   fullName: string;
   age: string;
   address: string;
-  timestamp: string;
+  createdAt?: { toDate?: () => Date };
+  timestamp?: string;
 }
 
 const AdminAttendancePage: React.FC = () => {
@@ -65,35 +66,43 @@ const AdminAttendancePage: React.FC = () => {
     }
   };
 
+  const formatTimestamp = (record: AttendanceRecord) => {
+    if (record.createdAt?.toDate) {
+      return record.createdAt.toDate().toLocaleString();
+    }
+
+    return record.timestamp ? new Date(record.timestamp).toLocaleString() : 'Not available';
+  };
+
   if (loading) {
     return <p>Loading attendance records...</p>;
   }
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-semibold mb-4">User Attendance Records</h2>
+    <div className="p-3 sm:p-6">
+      <h2 className="mb-4 text-2xl font-semibold">User Attendance Records</h2>
       {attendanceRecords.length > 0 ? (
-        <div className="overflow-x-auto mb-8">
-          <table className="min-w-full bg-white border border-gray-200">
+        <div className="mb-8 overflow-x-auto rounded-lg border border-gray-200 bg-white">
+          <table className="w-full min-w-0 border-collapse text-left">
             <thead>
               <tr>
-                <th className="py-2 px-4 border-b">Event Name</th>
-                <th className="py-2 px-4 border-b">Email</th>
-                <th className="py-2 px-4 border-b">Full Name</th>
-                <th className="py-2 px-4 border-b">Age</th>
-                <th className="py-2 px-4 border-b">Address</th>
-                <th className="py-2 px-4 border-b">Timestamp</th>
+                <th className="border-b border-gray-200 px-3 py-2 text-sm font-semibold sm:px-4">Event Name</th>
+                <th className="border-b border-gray-200 px-3 py-2 text-sm font-semibold sm:px-4">Email</th>
+                <th className="border-b border-gray-200 px-3 py-2 text-sm font-semibold sm:px-4">Full Name</th>
+                <th className="border-b border-gray-200 px-3 py-2 text-sm font-semibold sm:px-4">Age</th>
+                <th className="border-b border-gray-200 px-3 py-2 text-sm font-semibold sm:px-4">Address</th>
+                <th className="border-b border-gray-200 px-3 py-2 text-sm font-semibold sm:px-4">Timestamp</th>
               </tr>
             </thead>
             <tbody>
               {attendanceRecords.map(record => (
                 <tr key={record.id}>
-                  <td className="py-2 px-4 border-b">{record.eventName}</td>
-                  <td className="py-2 px-4 border-b">{record.email}</td>
-                  <td className="py-2 px-4 border-b">{record.fullName}</td>
-                  <td className="py-2 px-4 border-b">{record.age}</td>
-                  <td className="py-2 px-4 border-b">{record.address}</td>
-                  <td className="py-2 px-4 border-b">{new Date(record.timestamp).toLocaleString()}</td>
+                  <td className="border-b border-gray-200 px-3 py-2 text-sm sm:px-4">{record.eventName}</td>
+                  <td className="border-b border-gray-200 px-3 py-2 text-sm sm:px-4">{record.email}</td>
+                  <td className="border-b border-gray-200 px-3 py-2 text-sm sm:px-4">{record.fullName}</td>
+                  <td className="border-b border-gray-200 px-3 py-2 text-sm sm:px-4">{record.age}</td>
+                  <td className="border-b border-gray-200 px-3 py-2 text-sm sm:px-4">{record.address}</td>
+                  <td className="border-b border-gray-200 px-3 py-2 text-sm sm:px-4">{formatTimestamp(record)}</td>
                 </tr>
               ))}
             </tbody>
@@ -106,7 +115,7 @@ const AdminAttendancePage: React.FC = () => {
       <div className="my-6">
         <button
           onClick={handleRaffle}
-          className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition duration-300"
+          className="rounded-lg bg-green-500 px-4 py-2 text-white transition duration-300 hover:bg-green-600"
         >
           Raffle a Winner
         </button>

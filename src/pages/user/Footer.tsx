@@ -17,7 +17,7 @@ const Footer: React.FC = () => {
 
          
           <div className="w-full flex justify-center">
-            <ul className="flex space-x-6 mb-4 md:mb-0">
+            <ul className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-4 md:mb-0">
               <li><a  className="text-gray-700 hover:text-black transition">About us</a></li>
               <li><a className="text-gray-700 hover:text-black transition">Contact Us</a></li>
               <li><a className="text-gray-700 hover:text-black transition">FAQs</a></li>
@@ -30,7 +30,7 @@ const Footer: React.FC = () => {
         {/* Bottom Section - Copyright */}
         <div className="flex flex-col items-center text-sm">
           <p className="text-gray-500">&copy; 2024 Sangguniang Kabataan. All rights reserved.</p>
-          <ul className="flex space-x-4 mt-2">
+          <ul className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-2">
             <li><a href="/privacy" className="text-gray-700 hover:text-black transition">Privacy Policy</a></li>
             <li><a href="/terms" className="text-gray-700 hover:text-black transition">Terms of Service</a></li>
             <li><a href="/cookies" className="text-gray-700 hover:text-black transition">Cookie Policy</a></li>

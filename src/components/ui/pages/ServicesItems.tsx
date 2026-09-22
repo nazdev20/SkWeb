@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { db, storage } from "../../../config/firebaseconfig";
-import { collection, getDocs, addDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import ServiceForms from '../forms/Services-forms';
 import { Service, FormData } from '../../../data/data';
 import ServiceItemsModal from '../../../modals/ServiceItemsmodal';
+import { normalizeService } from '../../../data/firestoreData';
 
 const ServiceItems: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
@@ -21,7 +22,7 @@ const ServiceItems: React.FC = () => {
     try {
       setLoading(true);
       const data = await getDocs(servicesCollectionRef);
-      const servicesData = data.docs.map(doc => ({ ...doc.data(), id: doc.id }) as Service);
+      const servicesData = data.docs.map(normalizeService);
       //console.log('Fetched services:', servicesData);
       setServices(servicesData);
       setDataFetched(true);
@@ -47,7 +48,12 @@ const ServiceItems: React.FC = () => {
 
   const handleApply = async (serviceId: string) => {
     try {
-      let applicationData: { serviceId: string; fileURL?: string } = { serviceId, ...formData[serviceId] };
+      let applicationData: Record<string, unknown> = {
+        serviceId,
+        ...formData[serviceId],
+        status: 'pending',
+        createdAt: serverTimestamp(),
+      };
 
       if (fileUploads[serviceId]) {
         const fileRef = ref(storage, `applications/${serviceId}/${fileUploads[serviceId]!.name}`);
@@ -93,7 +99,7 @@ const ServiceItems: React.FC = () => {
   };
 
   return (
-    <div className="p-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid min-w-0 grid-cols-1 gap-6 p-4 sm:grid-cols-2 lg:grid-cols-3">
       {loading ? (
         <p>Loading services...</p>
       ) : services.length === 0 ? (
@@ -102,7 +108,7 @@ const ServiceItems: React.FC = () => {
         services.map(service => (
           <div
             key={service.id}
-            className="flex flex-col items-center text-center border-2 border-gray-200 p-4 rounded-lg shadow-lg hover:scale-105 transition-transform duration-300 cursor-pointer"
+            className="flex min-w-0 cursor-pointer flex-col items-center rounded-lg border-2 border-gray-200 p-4 text-center shadow-lg transition-transform duration-300 hover:scale-105"
             onClick={() => openServiceItemsModal(service)}
           >
             <div
@@ -113,7 +119,7 @@ const ServiceItems: React.FC = () => {
                 backgroundPosition: 'center',
               }}
             />
-            <div className="mt-4">
+            <div className="mt-4 min-w-0 max-w-full">
               <h3 className="text-lg md:text-xl font-bold">{service.title}</h3>
               <p className="text-sm md:text-base mt-2">{service.description}</p>
             </div>

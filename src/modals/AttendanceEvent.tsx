@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config/firebaseconfig'; // Adjust the path to your Firebase config
 
 interface AttendanceFormModalProps {
@@ -29,7 +29,7 @@ const AttendanceFormModal: React.FC<AttendanceFormModalProps> = ({ eventName, on
         fullName,
         age,
         address,
-        timestamp: new Date().toISOString(),
+        createdAt: serverTimestamp(),
       });
       alert('Attendance recorded successfully!');
       onClose(); // Close the modal after submission
